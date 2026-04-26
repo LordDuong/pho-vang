@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="menu">
+    <div id="setup-screen" style="display:none;"></div>
+    <div id="login-screen" style="display:none;"></div>
+    <input id="u" type="text" style="display:none;" />
+    <input id="p" type="password" style="display:none;" />
+    <div id="lerr" style="display:none;"></div>
+    <div id="login-fields" style="display:none;"></div>
+    <button id="btn-guest" type="button" style="display:none;"></button>
+    <button id="tab-customer" type="button" style="display:none;"></button>
+    <button id="tab-waiter" type="button" style="display:none;"></button>
+    <button id="tab-cashier" type="button" style="display:none;"></button>
+    <button id="tab-kitchen" type="button" style="display:none;"></button>
+    <button id="tab-manager" type="button" style="display:none;"></button>
+    <button id="tab-owner" type="button" style="display:none;"></button>
+<!-- ══ APP ══ -->
+    <div id="app">
+      <div class="topbar">
+        <div class="tb-brand">
+          🍜 Phở Vàng
+          <div class="live-chip" id="sync-chip">
+            <div class="ld"></div>
+            Live
+          </div>
+        </div>
+        <div class="tb-right">
+          <div class="user-badge">
+            <span id="tb-name">—</span>
+            <span class="role-lbl" id="tb-role">—</span>
+          </div>
+          <button class="btn-logout" id="btn-auth" onclick="doLogout()">Đăng xuất</button>
+      </div>  
+      </div>
+
+      <!-- CUSTOMER -->
+      <div class="view" id="view-customer">
+        <div class="menu-sidebar">
+          <h3>Thực đơn</h3>
+          <button class="cat-btn active" onclick="filterCat('all', this)">
+            🍽️ Tất cả
+          </button>
+          <button class="cat-btn" onclick="filterCat('Phở', this)">
+            🍜 Phở
+          </button>
+          <button class="cat-btn" onclick="filterCat('Cơm', this)">
+            🍚 Cơm
+          </button>
+          <button class="cat-btn" onclick="filterCat('Đồ uống', this)">
+            🥤 Đồ uống
+          </button>
+          <button class="cat-btn" onclick="filterCat('Món phụ', this)">
+            🥗 Món phụ
+          </button>
+        </div>
+        <div class="menu-main">
+          <h2>Chọn món</h2>
+          <div class="menu-grid" id="menu-grid"></div>
+        </div>
+        <div class="cart-panel">
+          <div class="cart-hdr">
+            <h3>🛒 Giỏ hàng</h3>
+            <span class="cart-cnt" id="cart-cnt">0</span>
+          </div>
+          <div class="tbl-sel">
+            <label>Số bàn</label>
+            <select id="tbl-sel">
+              <option value="">— Chọn bàn —</option>
+              <option>Bàn 1</option>
+              <option>Bàn 2</option>
+              <option>Bàn 3</option>
+              <option>Bàn 4</option>
+              <option>Bàn 5</option>
+              <option>Bàn 6</option>
+              <option>Bàn 7</option>
+              <option>Bàn 8</option>
+            </select>
+          </div>
+          <div class="cart-items" id="cart-items">
+            <div class="cart-empty">
+              <div class="ce-icon">🍽️</div>
+              <div>Chưa có món nào</div>
+            </div>
+          </div>
+          <div class="cart-foot">
+            <div class="cart-tot-row">
+              <span>Tổng cộng</span><span class="amt" id="cart-tot">0đ</span>
+            </div>
+            <button class="btn-order" id="btn-order" onclick="placeOrder()">
+              Đặt món ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+<div class="modal-ov" id="pay-modal">
+      <div class="modal">
+        <h3>💳 Xác nhận đặt món</h3>
+        <div id="pay-sum"></div>
+        <div class="modal-ft">
+          <button class="btn-cancel" onclick="closeMod('pay-modal')">
+            Hủy
+          </button>
+          <button class="btn-ok green-btn" onclick="confirmOrder()">
+            ✅ Xác nhận đặt
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="tc"></div>
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module">
+      if (window.useLocal) {
+        window.useLocal();
+      }
+      if (window.guestLogin) {
+        window.guestLogin();
+      }
+    </script>
+  </body>
+</html>
