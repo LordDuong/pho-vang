@@ -1,20 +1,21 @@
-\# Pho Vang — Restaurant Management System
+# Pho Vang — Restaurant Management System
 
 
 
-\## Structure
+## Structure
 
-\- backend/   → Go API
+- backend   → Go API
 
-\- frontend/  → Web UI
+- frontend  → Web UI
 
-\- docs/      → Tài liệu
+- docs      → Tài liệu
 
 
 
-\## Branches
+## Branches
 
-\- main     → production
+- main     → production 
 
-\- develop  → làm việc chính
+- develop  → làm việc chính
 
+- Note: Lưu ý cả nhóm không push code thẳng lên master, push lên branch develop cho t grrrrr
