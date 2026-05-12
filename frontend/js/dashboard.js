@@ -1,22 +1,18 @@
-import "./auth.js";
+import { restoreDashboardSession } from "./auth.js";
 import {
   DAYS,
   ROLE_NAMES,
   bootstrapData,
   closeMod,
-  enterApp,
   escapeHtml,
   fmt,
   getMenuImage,
   hashPassword,
   MENU_IMG_FALLBACK,
-  loadAuthSession,
   persistLocalData,
   registerActions,
   registerRoleHandler,
   registerTabHandler,
-  setCurrentUser,
-  setRole,
   state,
   toast,
   todayKey,
@@ -752,14 +748,7 @@ const refreshDashboardRole = () => {
 
 const bootDashboardPage = async () => {
   await bootstrapData({ fallbackToLocal: true });
-  const session = loadAuthSession();
-  if (!session?.role || !session?.currentUser || session.role === "customer") {
-    window.location.href = "index.html";
-    return;
-  }
-  setRole(session.role);
-  setCurrentUser(session.currentUser);
-  enterApp();
+  restoreDashboardSession();
 };
 
 registerRoleHandler("waiter", { show: refreshDashboardRole, refresh: refreshDashboardRole });

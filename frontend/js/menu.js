@@ -183,13 +183,13 @@ const confirmOrder = async () => {
 
 const ensureCustomerSession = () => {
   const session = loadAuthSession();
-  if (session?.role && session?.currentUser) {
+  if (session?.role) {
     if (session.role !== "customer") {
       window.location.href = "dashboard.html";
       return false;
     }
     setRole(session.role);
-    setCurrentUser(session.currentUser);
+    setCurrentUser({ name: "Khách vãng lai", role: "customer" });
     return true;
   }
 

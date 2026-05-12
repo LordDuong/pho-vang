@@ -307,31 +307,11 @@ export const persistLocalData = () => {
       menuItems: state.menuItems,
       activeOrders: state.activeOrders,
       salesHistory: state.salesHistory,
-      employees: state.employees.map((employee) => serializeEmployee(employee)),
       attendanceLog: state.attendanceLog,
       schedule: state.schedule,
     }),
   );
 };
-
-const serializeEmployee = (employee) => ({
-  id: employee.id,
-  name: employee.name,
-  role: employee.role,
-  user: employee.user,
-  wage: employee.wage,
-});
-
-const serializeSessionUser = (user) =>
-  user
-    ? {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        user: user.user,
-        wage: user.wage,
-      }
-    : null;
 
 const updateSyncChip = () => {
   const chip = document.getElementById("sync-chip");
@@ -385,7 +365,7 @@ export const saveAuthSession = () => {
     AUTH_SESSION_KEY,
     JSON.stringify({
       role: state.role,
-      currentUser: serializeSessionUser(state.currentUser),
+      userKey: state.currentUser?.user || state.currentUser?.id || null,
     }),
   );
 };
@@ -605,20 +585,26 @@ export const connectFirebase = async (rawOverride) => {
     state.DB = getDatabase(app);
     state.FB = true;
 
-    const menuSnapshot = await get(ref(state.DB, "menu"));
+    let menuSnapshot = await get(ref(state.DB, "menu"));
     if (!menuSnapshot.exists()) {
       await set(ref(state.DB, "menu"), buildMenuSeed());
+      menuSnapshot = await get(ref(state.DB, "menu"));
     }
+    state.menuItems = menuSnapshot.exists() ? Object.values(menuSnapshot.val()) : [];
 
-    const employeeSnapshot = await get(ref(state.DB, "employees"));
+    let employeeSnapshot = await get(ref(state.DB, "employees"));
     if (!employeeSnapshot.exists()) {
       await set(ref(state.DB, "employees"), await buildEmployeeSeed());
+      employeeSnapshot = await get(ref(state.DB, "employees"));
     }
+    state.employees = employeeSnapshot.exists() ? Object.values(employeeSnapshot.val()) : [];
 
-    const scheduleSnapshot = await get(ref(state.DB, "schedule"));
+    let scheduleSnapshot = await get(ref(state.DB, "schedule"));
     if (!scheduleSnapshot.exists()) {
       await set(ref(state.DB, "schedule"), cloneSchedule());
+      scheduleSnapshot = await get(ref(state.DB, "schedule"));
     }
+    state.schedule = scheduleSnapshot.exists() ? scheduleSnapshot.val() : cloneSchedule();
 
     localStorage.setItem("fb_cfg", JSON.stringify(config));
     document.getElementById("connecting")?.classList.remove("show");
@@ -650,9 +636,9 @@ export const useLocal = async () => {
 
   const savedLocalData = loadLocalData();
   state.menuItems = savedLocalData?.menuItems || DEF_MENU.map((item) => ({ ...item }));
-  state.employees = savedLocalData?.employees
-    ? await Promise.all(savedLocalData.employees.map((employee) => normalizeEmployeeRecord(employee)))
-    : await Promise.all(DEF_EMPLOYEES.map((employee) => normalizeEmployeeRecord(employee)));
+  state.employees = await Promise.all(
+    DEF_EMPLOYEES.map((employee) => normalizeEmployeeRecord(employee)),
+  );
   state.schedule = savedLocalData?.schedule || cloneSchedule();
   state.activeOrders = savedLocalData?.activeOrders || {};
   state.salesHistory = savedLocalData?.salesHistory || [];

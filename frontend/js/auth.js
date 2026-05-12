@@ -103,14 +103,35 @@ export const doLogout = () => {
   selRole("customer");
 };
 
+const findUserFromSession = (session) => {
+  if (session.role === "customer") {
+    return { name: "Khách vãng lai", role: "customer" };
+  }
+
+  const builtin = BUILTIN_ACCTS[session.userKey];
+  if (builtin && builtin.role === session.role) {
+    return { name: builtin.name, role: builtin.role, user: session.userKey };
+  }
+
+  const employee = state.employees.find(
+    (item) => item.user === session.userKey || item.id === session.userKey,
+  );
+  return employee ? toSessionUser(employee) : null;
+};
+
 export const restoreDashboardSession = () => {
   const session = loadAuthSession();
-  if (!session?.role || !session?.currentUser || session.role === "customer") {
+  if (!session?.role || !session?.userKey || session.role === "customer") {
+    goToLoginPage();
+    return false;
+  }
+  const user = findUserFromSession(session);
+  if (!user) {
     goToLoginPage();
     return false;
   }
   setRole(session.role);
-  setCurrentUser(session.currentUser);
+  setCurrentUser(user);
   enterApp();
   return true;
 };
