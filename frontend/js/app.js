@@ -307,12 +307,31 @@ export const persistLocalData = () => {
       menuItems: state.menuItems,
       activeOrders: state.activeOrders,
       salesHistory: state.salesHistory,
-      employees: state.employees.map(({ pass, passHash, ...employee }) => employee),
+      employees: state.employees.map((employee) => serializeEmployee(employee)),
       attendanceLog: state.attendanceLog,
       schedule: state.schedule,
     }),
   );
 };
+
+const serializeEmployee = (employee) => ({
+  id: employee.id,
+  name: employee.name,
+  role: employee.role,
+  user: employee.user,
+  wage: employee.wage,
+});
+
+const serializeSessionUser = (user) =>
+  user
+    ? {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        user: user.user,
+        wage: user.wage,
+      }
+    : null;
 
 const updateSyncChip = () => {
   const chip = document.getElementById("sync-chip");
@@ -362,10 +381,12 @@ export const setCurrentUser = (user) => {
 };
 
 export const saveAuthSession = () => {
-  const { pass, passHash, ...safeCurrentUser } = state.currentUser || {};
   sessionStorage.setItem(
     AUTH_SESSION_KEY,
-    JSON.stringify({ role: state.role, currentUser: safeCurrentUser }),
+    JSON.stringify({
+      role: state.role,
+      currentUser: serializeSessionUser(state.currentUser),
+    }),
   );
 };
 
