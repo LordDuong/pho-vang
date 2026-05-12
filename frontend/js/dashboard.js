@@ -5,8 +5,10 @@ import {
   bootstrapData,
   closeMod,
   enterApp,
+  escapeHtml,
   fmt,
   getMenuImage,
+  hashPassword,
   MENU_IMG_FALLBACK,
   loadAuthSession,
   persistLocalData,
@@ -33,9 +35,9 @@ const renderAttendanceBar = (role) => {
   const checkedIn = attendance && attendance.in && !attendance.out;
 
   bar.innerHTML = `
-    <div class="shift-info">Ca hôm nay: <strong>${state.currentUser?.name || ""}</strong>
-    ${attendance?.in ? ` | Vào: <strong style="color:var(--green)">${attendance.in}</strong>` : ""}
-    ${attendance?.out ? ` | Ra: <strong style="color:#E74C3C">${attendance.out}</strong>` : ""}
+    <div class="shift-info">Ca hôm nay: <strong>${escapeHtml(state.currentUser?.name || "")}</strong>
+    ${attendance?.in ? ` | Vào: <strong style="color:var(--green)">${escapeHtml(attendance.in)}</strong>` : ""}
+    ${attendance?.out ? ` | Ra: <strong style="color:#E74C3C">${escapeHtml(attendance.out)}</strong>` : ""}
     </div>
     ${!attendance?.in ? '<button class="btn-checkin" onclick="W.checkIn()">✅ Vào ca</button>' : ""}
     ${checkedIn ? '<button class="btn-checkout" onclick="W.checkOut()">🚪 Ra ca</button>' : ""}
@@ -90,11 +92,11 @@ const orderCardHTML = (order, view) => {
 
   return `<div class="order-card">
     <div class="oc-hdr">
-      <div><div class="oc-tbl">📍 ${order.table}</div><div class="oc-time">⏱ ${order.time} #${(order.fbKey || "").slice(-4)}</div></div>
+      <div><div class="oc-tbl">📍 ${escapeHtml(order.table)}</div><div class="oc-time">⏱ ${escapeHtml(order.time)} #${(order.fbKey || "").slice(-4)}</div></div>
       <span class="oc-status ${statusClass[order.status] || "s-pending"}">${statusMap[order.status] || order.status}</span>
     </div>
     <div class="oc-items">
-      ${order.items.map((item) => `<div class="oi-row"><span>${item.emoji} ${item.name} <span class="qbadge">×${item.qty}</span></span><span style="color:var(--gold)">${fmt(item.price * item.qty)}</span></div>`).join("")}
+      ${order.items.map((item) => `<div class="oi-row"><span>${item.emoji} ${escapeHtml(item.name)} <span class="qbadge">×${item.qty}</span></span><span style="color:var(--gold)">${fmt(item.price * item.qty)}</span></div>`).join("")}
       <div style="display:flex;justify-content:space-between;font-weight:700;font-size:11px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.04)">
         <span>Tổng</span><span style="color:var(--green)">${fmt(order.total)}</span>
       </div>
@@ -134,11 +136,11 @@ const renderKitchen = () => {
       const cooking = order.status === "cooking";
       return `<div class="kitchen-card ${cooking ? "cooking" : ""}">
         <div class="kc-hdr ${cooking ? "cooking-bg" : ""}">
-          <div class="kc-tbl ${cooking ? "cooking-text" : ""}">📍 ${order.table}</div>
+          <div class="kc-tbl ${cooking ? "cooking-text" : ""}">📍 ${escapeHtml(order.table)}</div>
           <span class="oc-status ${cooking ? "s-cooking" : "s-pending"}">${cooking ? "🍳 Đang nấu" : "⏳ Chờ nấu"}</span>
         </div>
         <div class="oc-items">
-          ${order.items.map((item) => `<div class="oi-row"><span>${item.emoji} ${item.name} <span class="qbadge">×${item.qty}</span></span></div>`).join("")}
+          ${order.items.map((item) => `<div class="oi-row"><span>${item.emoji} ${escapeHtml(item.name)} <span class="qbadge">×${item.qty}</span></span></div>`).join("")}
         </div>
         <div class="oc-foot">
           ${order.status === "confirmed" ? `<button class="btn-s purple" onclick="W.updateStatus('${order.fbKey}','cooking')">🍳 Bắt đầu nấu</button>` : ""}
@@ -164,11 +166,11 @@ const renderCashier = () => {
     .map(
       (order) => `<div class="pay-card">
     <div class="pc-hdr">
-      <div class="pc-tbl">📍 ${order.table}</div>
+      <div class="pc-tbl">📍 ${escapeHtml(order.table)}</div>
       <div class="pc-total">${fmt(order.total)}</div>
     </div>
     <div class="pc-items">
-      ${order.items.map((item) => `<div class="oi-row"><span>${item.emoji} ${item.name} ×${item.qty}</span><span style="color:var(--gold)">${fmt(item.price * item.qty)}</span></div>`).join("")}
+      ${order.items.map((item) => `<div class="oi-row"><span>${item.emoji} ${escapeHtml(item.name)} ×${item.qty}</span><span style="color:var(--gold)">${fmt(item.price * item.qty)}</span></div>`).join("")}
     </div>
     <div class="pc-foot"><button class="btn-pay" onclick="W.openCashout('${order.fbKey}')">💳 Thu tiền</button></div>
   </div>`,
@@ -188,10 +190,10 @@ const renderCashierPaid = () => {
       .slice(0, 20)
       .map(
         (order) => `<div class="recent-row" style="margin-bottom:5px">
-      <span class="r-tbl">📍 ${order.table}</span>
-      <span style="color:var(--mid);font-size:10px">${order.payMethod || "Tiền mặt"}</span>
+      <span class="r-tbl">📍 ${escapeHtml(order.table)}</span>
+      <span style="color:var(--mid);font-size:10px">${escapeHtml(order.payMethod || "Tiền mặt")}</span>
       <span class="r-amt">${fmt(order.total)}</span>
-      <span class="r-time">${order.completedAt || order.time}</span>
+      <span class="r-time">${escapeHtml(order.completedAt || order.time)}</span>
     </div>`,
       )
       .join("") || '<div style="color:var(--mid);font-size:12px">Chưa có giao dịch</div>';
@@ -211,9 +213,9 @@ const renderEmpTable = () => {
       ${state.employees
         .map(
           (employee) => `<tr>
-        <td>${employee.name}</td>
+        <td>${escapeHtml(employee.name)}</td>
         <td><span class="badge badge-blue">${ROLE_NAMES[employee.role] || employee.role}</span></td>
-        <td style="color:var(--mid)">${employee.user || "—"}</td>
+        <td style="color:var(--mid)">${escapeHtml(employee.user || "—")}</td>
         <td style="color:var(--gold)">${fmt(employee.wage || 0)}/h</td>
         <td><button class="btn-sm edit" onclick="W.editEmp('${employee.id}')">Sửa</button> <button class="btn-sm del" onclick="W.delEmp('${employee.id}')">Xóa</button></td>
       </tr>`,
@@ -235,7 +237,7 @@ const renderSchedule = () => {
           const employee = state.employees.find((item) => item.id === shift.emp) || { name: shift.emp };
           const isMorning =
             shift.shift.includes("Sáng") || shift.shift.includes("7") || shift.shift.includes("8");
-          return `<div class="sched-shift ${isMorning ? "ss-morning" : "ss-evening"}" title="${employee.name}">${employee.name.split(" ").pop()}<br><span style="font-size:9px">${shift.shift}</span></div>`;
+          return `<div class="sched-shift ${isMorning ? "ss-morning" : "ss-evening"}" title="${escapeHtml(employee.name)}">${escapeHtml(employee.name.split(" ").pop())}<br><span style="font-size:9px">${escapeHtml(shift.shift)}</span></div>`;
         })
         .join("")}
     </div>`,
@@ -267,7 +269,7 @@ const renderAttendanceList = () => {
       }
 
       return `<div class="att-row">
-      <div class="att-name">${employee.name} <span class="badge badge-blue" style="font-size:9px">${ROLE_NAMES[employee.role]}</span></div>
+      <div class="att-name">${escapeHtml(employee.name)} <span class="badge badge-blue" style="font-size:9px">${ROLE_NAMES[employee.role]}</span></div>
       <div class="att-times">${item?.in ? `Vào: ${item.in}` : ""} ${item?.out ? `| Ra: ${item.out}` : ""}</div>
       ${statusBadge}
     </div>`;
@@ -307,7 +309,7 @@ const calcSalary = () => {
 
       const salary = Math.round(totalHours * (employee.wage || 30000));
       return `<div class="salary-card">
-      <div class="salary-name">${employee.name} <span class="badge badge-blue" style="font-size:9px">${ROLE_NAMES[employee.role]}</span></div>
+      <div class="salary-name">${escapeHtml(employee.name)} <span class="badge badge-blue" style="font-size:9px">${ROLE_NAMES[employee.role]}</span></div>
       <div class="salary-row"><span>Số ngày làm</span><span>${totalDays} ngày</span></div>
       <div class="salary-row"><span>Tổng giờ làm</span><span>${totalHours.toFixed(1)} giờ</span></div>
       <div class="salary-row"><span>Lương/giờ</span><span>${fmt(employee.wage || 0)}</span></div>
@@ -353,7 +355,7 @@ const renderOwnerDash = () => {
       ? '<div style="color:var(--mid);font-size:12px">Chưa có dữ liệu</div>'
       : topItems
           .map(
-            (item) => `<div class="top-row"><div class="top-e">${item.emoji}</div><div class="top-info"><div class="top-name">${item.name}</div><div class="bar-wrap"><div class="bar-fill" style="width:${(item.soldCount / maxSold) * 100}%"></div></div></div><div class="top-cnt">${item.soldCount}</div></div>`,
+            (item) => `<div class="top-row"><div class="top-e">${item.emoji}</div><div class="top-info"><div class="top-name">${escapeHtml(item.name)}</div><div class="bar-wrap"><div class="bar-fill" style="width:${(item.soldCount / maxSold) * 100}%"></div></div></div><div class="top-cnt">${item.soldCount}</div></div>`,
           )
           .join("");
 
@@ -363,7 +365,7 @@ const renderOwnerDash = () => {
       : state.salesHistory
           .slice(0, 8)
           .map(
-            (order) => `<div class="recent-row"><span class="r-tbl">📍 ${order.table}</span><span class="r-amt">${fmt(order.total)}</span><span class="r-time">${order.completedAt || order.time}</span></div>`,
+            (order) => `<div class="recent-row"><span class="r-tbl">📍 ${escapeHtml(order.table)}</span><span class="r-amt">${fmt(order.total)}</span><span class="r-time">${escapeHtml(order.completedAt || order.time)}</span></div>`,
           )
           .join("");
 };
@@ -374,8 +376,8 @@ const renderOwnerMenu = () => {
   grid.innerHTML = state.menuItems
     .map(
       (item) => `<div class="mm-card">
-    <div class="mm-e"><img class="mm-photo" src="${getMenuImage(item)}" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.src='${MENU_IMG_FALLBACK}'" /></div>
-    <div class="mm-info"><div class="mm-name">${item.name}</div><div class="mm-sub">${item.cat} · ${fmt(item.price)}</div><div class="mm-sold">Bán: ${item.soldCount || 0}</div></div>
+    <div class="mm-e"><img class="mm-photo" src="${escapeHtml(getMenuImage(item))}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(MENU_IMG_FALLBACK)}'" /></div>
+    <div class="mm-info"><div class="mm-name">${escapeHtml(item.name)}</div><div class="mm-sub">${escapeHtml(item.cat)} · ${fmt(item.price)}</div><div class="mm-sold">Bán: ${item.soldCount || 0}</div></div>
     <div class="mm-acts">
       <button class="btn-av ${item.avail ? "on" : "off"}" onclick="W.togAvail('${item.id}')">${item.avail ? "✓ Còn" : "✗ Hết"}</button>
       <button class="btn-del" onclick="W.delItem('${item.id}')">Xóa</button>
@@ -392,14 +394,14 @@ const renderOwnerStaff = () => {
 
   wrap.innerHTML = `<table class="emp-table">
     <thead><tr><th>Họ tên</th><th>Vị trí</th><th>Lương/giờ</th></tr></thead>
-    <tbody>${state.employees.map((employee) => `<tr><td>${employee.name}</td><td><span class="badge badge-blue">${ROLE_NAMES[employee.role] || employee.role}</span></td><td style="color:var(--gold)">${fmt(employee.wage || 0)}/h</td></tr>`).join("")}</tbody>
+    <tbody>${state.employees.map((employee) => `<tr><td>${escapeHtml(employee.name)}</td><td><span class="badge badge-blue">${ROLE_NAMES[employee.role] || employee.role}</span></td><td style="color:var(--gold)">${fmt(employee.wage || 0)}/h</td></tr>`).join("")}</tbody>
   </table>`;
 
   salaryList.innerHTML =
     state.employees
       .map((employee) => {
         const salary = employee.wage * 8 * 26;
-        return `<div class="recent-row"><span class="r-tbl">${employee.name}</span><span style="color:var(--blue);font-size:10px">${ROLE_NAMES[employee.role]}</span><span class="r-amt">${fmt(salary)}/tháng</span></div>`;
+        return `<div class="recent-row"><span class="r-tbl">${escapeHtml(employee.name)}</span><span style="color:var(--blue);font-size:10px">${ROLE_NAMES[employee.role]}</span><span class="r-amt">${fmt(salary)}/tháng</span></div>`;
       })
       .join("") || '<div style="color:var(--mid);font-size:12px">Chưa có nhân viên</div>';
 };
@@ -489,8 +491,8 @@ const openCashout = (key) => {
   const summary = document.getElementById("cashout-sum");
   if (!summary) return;
   summary.innerHTML = `
-    <div style="font-weight:700;margin-bottom:8px">📍 ${order.table}</div>
-    ${order.items.map((item) => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span>${item.emoji} ${item.name} ×${item.qty}</span><span style="color:var(--gold)">${fmt(item.price * item.qty)}</span></div>`).join("")}
+    <div style="font-weight:700;margin-bottom:8px">📍 ${escapeHtml(order.table)}</div>
+    ${order.items.map((item) => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span>${item.emoji} ${escapeHtml(item.name)} ×${item.qty}</span><span style="color:var(--gold)">${fmt(item.price * item.qty)}</span></div>`).join("")}
     <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid rgba(201,168,76,.2);margin-top:10px;padding-top:10px">
       <span>Tổng cộng</span><span style="color:var(--green)">${fmt(order.total)}</span>
     </div>`;
@@ -561,7 +563,13 @@ const addEmployee = async () => {
     return;
   }
 
-  const employee = { name, role, user, pass, wage };
+  const employee = {
+    name,
+    role,
+    user,
+    passHash: await hashPassword(pass),
+    wage,
+  };
   if (state.FB) {
     const employeeRef = push(ref(state.DB, "employees"));
     await set(employeeRef, { ...employee, id: employeeRef.key });

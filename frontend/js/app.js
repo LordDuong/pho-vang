@@ -267,11 +267,25 @@ const buildMenuSeed = () => {
   return menu;
 };
 
-const buildEmployeeSeed = () => {
+export const hashPassword = async (value) => {
+  const encoded = new TextEncoder().encode(String(value ?? ""));
+  const digest = await crypto.subtle.digest("SHA-256", encoded);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+const normalizeEmployeeRecord = async (employee) => {
+  const { pass, ...rest } = employee;
+  const passHash = employee.passHash || (pass ? await hashPassword(pass) : undefined);
+  return passHash ? { ...rest, passHash } : { ...rest };
+};
+
+const buildEmployeeSeed = async () => {
   const employees = {};
-  DEF_EMPLOYEES.forEach((employee) => {
-    employees[employee.id] = { ...employee };
-  });
+  for (const employee of DEF_EMPLOYEES) {
+    employees[employee.id] = await normalizeEmployeeRecord(employee);
+  }
   return employees;
 };
 
@@ -293,7 +307,7 @@ export const persistLocalData = () => {
       menuItems: state.menuItems,
       activeOrders: state.activeOrders,
       salesHistory: state.salesHistory,
-      employees: state.employees,
+      employees: state.employees.map(({ pass, ...employee }) => employee),
       attendanceLog: state.attendanceLog,
       schedule: state.schedule,
     }),
@@ -324,6 +338,13 @@ const bindModalOverlays = () => {
 
 export const getPageName = () => document.body?.dataset?.page || "";
 export const fmt = (value) => Number(value).toLocaleString("vi-VN") + "đ";
+export const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 export const todayKey = () => new Date().toISOString().slice(0, 10);
 export const getMenuImage = (item) =>
   item.img || MENU_IMG_BY_ID[item.id] || MENU_IMG_FALLBACK;
@@ -569,7 +590,7 @@ export const connectFirebase = async (rawOverride) => {
 
     const employeeSnapshot = await get(ref(state.DB, "employees"));
     if (!employeeSnapshot.exists()) {
-      await set(ref(state.DB, "employees"), buildEmployeeSeed());
+      await set(ref(state.DB, "employees"), await buildEmployeeSeed());
     }
 
     const scheduleSnapshot = await get(ref(state.DB, "schedule"));
@@ -601,13 +622,15 @@ export const connectFirebase = async (rawOverride) => {
   }
 };
 
-export const useLocal = () => {
+export const useLocal = async () => {
   state.DB = null;
   state.FB = false;
 
   const savedLocalData = loadLocalData();
   state.menuItems = savedLocalData?.menuItems || DEF_MENU.map((item) => ({ ...item }));
-  state.employees = savedLocalData?.employees || DEF_EMPLOYEES.map((employee) => ({ ...employee }));
+  state.employees = savedLocalData?.employees
+    ? await Promise.all(savedLocalData.employees.map((employee) => normalizeEmployeeRecord(employee)))
+    : await Promise.all(DEF_EMPLOYEES.map((employee) => normalizeEmployeeRecord(employee)));
   state.schedule = savedLocalData?.schedule || cloneSchedule();
   state.activeOrders = savedLocalData?.activeOrders || {};
   state.salesHistory = savedLocalData?.salesHistory || [];
@@ -633,7 +656,7 @@ export const bootstrapData = async ({ fallbackToLocal = false } = {}) => {
   }
 
   if (fallbackToLocal) {
-    useLocal();
+    await useLocal();
   }
 
   return false;

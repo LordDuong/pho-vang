@@ -3,6 +3,7 @@ import {
   bootstrapData,
   closeMod,
   enterApp,
+  escapeHtml,
   fmt,
   getMenuImage,
   MENU_IMG_FALLBACK,
@@ -37,10 +38,10 @@ const renderMenu = (category) => {
     .map(
       (item) => `
     <div class="menu-card${item.avail ? "" : " unavail"}" onclick="${item.avail ? `W.addToCart('${item.id}')` : ""}">
-      <div class="mc-img"><img class="mc-photo" src="${getMenuImage(item)}" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.src='${MENU_IMG_FALLBACK}'" /></div>
+      <div class="mc-img"><img class="mc-photo" src="${escapeHtml(getMenuImage(item))}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.src='${MENU_IMG_FALLBACK}'" /></div>
       <div class="mc-body">
-        <div class="mc-name">${item.name}</div>
-        <div class="mc-desc">${item.desc}</div>
+        <div class="mc-name">${escapeHtml(item.name)}</div>
+        <div class="mc-desc">${escapeHtml(item.desc)}</div>
         <div class="mc-foot">
           <div class="mc-price">${fmt(item.price)}</div>
           ${item.avail ? `<button class="btn-add" onclick="event.stopPropagation();W.addToCart('${item.id}')">+</button>` : '<span style="font-size:9px;color:var(--mid)">Hết</span>'}
@@ -72,7 +73,7 @@ const renderCart = () => {
           .map(
             (item) => `<div class="cart-item">
       <div class="ci-e">${item.item.emoji}</div>
-      <div class="ci-info"><div class="ci-name">${item.item.name}</div><div class="ci-price">${fmt(item.item.price)}</div></div>
+      <div class="ci-info"><div class="ci-name">${escapeHtml(item.item.name)}</div><div class="ci-price">${fmt(item.item.price)}</div></div>
       <div class="ci-qty">
         <button class="qbtn" onclick="W.chgQty('${item.item.id}',-1)">−</button>
         <span class="qnum">${item.qty}</span>
@@ -125,11 +126,11 @@ const placeOrder = () => {
   if (!paySummary) return;
 
   paySummary.innerHTML = `
-    <div style="margin-bottom:10px"><strong>📍 ${table}</strong></div>
+    <div style="margin-bottom:10px"><strong>📍 ${escapeHtml(table)}</strong></div>
     ${state.cart
       .map(
         (item) => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">
-      <span>${item.item.emoji} ${item.item.name} ×${item.qty}</span><span style="color:var(--gold)">${fmt(item.item.price * item.qty)}</span>
+      <span>${item.item.emoji} ${escapeHtml(item.item.name)} ×${item.qty}</span><span style="color:var(--gold)">${fmt(item.item.price * item.qty)}</span>
     </div>`,
       )
       .join("")}

@@ -3,6 +3,7 @@ import {
   bootstrapData,
   clearAuthSession,
   connectFirebase,
+  hashPassword,
   enterApp,
   getPageName,
   goToLoginPage,
@@ -43,7 +44,12 @@ export const guestLogin = () => {
   enterApp();
 };
 
-export const doLogin = () => {
+const toSessionUser = (employee) => {
+  const { pass, passHash, ...safeEmployee } = employee;
+  return safeEmployee;
+};
+
+export const doLogin = async () => {
   const username = document.getElementById("u")?.value.trim() || "";
   const password = document.getElementById("p")?.value.trim() || "";
   const err = document.getElementById("lerr");
@@ -58,12 +64,15 @@ export const doLogin = () => {
     return;
   }
 
+  const passwordHash = await hashPassword(password);
   const employee = state.employees.find(
-    (item) => item.user === username && item.pass === password,
+    (item) =>
+      item.user === username &&
+      (item.pass === password || item.passHash === passwordHash),
   );
   if (employee && employee.role === state.selectedRole) {
     setRole(employee.role);
-    setCurrentUser({ ...employee });
+    setCurrentUser(toSessionUser(employee));
     if (err) err.style.display = "none";
     saveAuthSession();
     redirectByRole(state.role);
