@@ -276,8 +276,8 @@ export const hashPassword = async (value) => {
 };
 
 const normalizeEmployeeRecord = async (employee) => {
-  const { pass, ...rest } = employee;
-  const passHash = employee.passHash || (pass ? await hashPassword(pass) : undefined);
+  const { pass: plainPassword, ...rest } = employee;
+  const passHash = employee.passHash || (plainPassword ? await hashPassword(plainPassword) : undefined);
   return passHash ? { ...rest, passHash } : { ...rest };
 };
 
@@ -307,7 +307,7 @@ export const persistLocalData = () => {
       menuItems: state.menuItems,
       activeOrders: state.activeOrders,
       salesHistory: state.salesHistory,
-      employees: state.employees.map(({ pass, ...employee }) => employee),
+      employees: state.employees.map(({ pass, passHash, ...employee }) => employee),
       attendanceLog: state.attendanceLog,
       schedule: state.schedule,
     }),
@@ -362,9 +362,10 @@ export const setCurrentUser = (user) => {
 };
 
 export const saveAuthSession = () => {
+  const { pass, passHash, ...safeCurrentUser } = state.currentUser || {};
   sessionStorage.setItem(
     AUTH_SESSION_KEY,
-    JSON.stringify({ role: state.role, currentUser: state.currentUser }),
+    JSON.stringify({ role: state.role, currentUser: safeCurrentUser }),
   );
 };
 
