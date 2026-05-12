@@ -10,20 +10,7 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body data-page="dashboard">
-    <div id="setup-screen" style="display:none;"></div>
-    <div id="login-screen" style="display:none;"></div>
-    <input id="u" type="text" style="display:none;" />
-    <input id="p" type="password" style="display:none;" />
-    <div id="lerr" style="display:none;"></div>
-    <div id="login-fields" style="display:none;"></div>
-    <button id="btn-guest" type="button" style="display:none;"></button>
-    <button id="tab-customer" type="button" style="display:none;"></button>
-    <button id="tab-waiter" type="button" style="display:none;"></button>
-    <button id="tab-cashier" type="button" style="display:none;"></button>
-    <button id="tab-kitchen" type="button" style="display:none;"></button>
-    <button id="tab-manager" type="button" style="display:none;"></button>
-    <button id="tab-owner" type="button" style="display:none;"></button>
-<!-- ══ APP ══ -->
+    <!-- ══ APP ══ -->
     <div id="app">
       <div class="topbar">
         <div class="tb-brand">
@@ -414,16 +401,6 @@
       </div>
     </div>
     <div id="tc"></div>
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/app.js"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module">
-      if (window.useLocal) {
-        window.useLocal();
-      }
-      if (window.restoreDashboardSession) {
-        window.restoreDashboardSession();
-      }
-    </script>
+    <script type="module" src="js/dashboard.js"></script>
   </body>
 </html>
