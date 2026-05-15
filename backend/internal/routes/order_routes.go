@@ -7,21 +7,12 @@ import (
 )
 
 func RegisterOrderRoutes(router *gin.Engine, orderHandler *handlers.OrderHandler) {
-	customerRoutes := router.Group("/api/customer")
+	api := router.Group("/api")
 	{
-		customerRoutes.POST("/orders", orderHandler.CreateOrder)
-		customerRoutes.GET("/orders/:id", orderHandler.GetOrderByID)
-	}
-
-	staffRoutes := router.Group("/api/staff")
-	{
-		staffRoutes.GET("/orders", orderHandler.GetOrdersByStatus)
-		staffRoutes.PUT("/orders/:id/:status", orderHandler.UpdateOrderStatus)
-	}
-
-	ownerRoutes := router.Group("/api/owner")
-	{
-		ownerRoutes.GET("/revenue", orderHandler.GetTotalRevenue)
-		ownerRoutes.GET("/top-items", orderHandler.GetTopItems)
+		api.POST("/orders", orderHandler.CreateOrder)
+		api.GET("/orders", orderHandler.GetOrdersByStatus)
+		api.PATCH("/orders/:id/status", orderHandler.UpdateOrderStatus)
+		api.POST("/sales", orderHandler.CreateSale)
+		api.GET("/revenue", orderHandler.GetTotalRevenue)
 	}
 }

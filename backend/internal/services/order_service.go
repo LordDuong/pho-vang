@@ -31,6 +31,10 @@ func (s *OrderService) GetOrdersByStatus(status string) ([]models.Order, error) 
 	return s.orderRepo.GetOrdersByStatus(status)
 }
 
+func (s *OrderService) GetAllOrders() ([]models.Order, error) {
+	return s.orderRepo.GetAllOrders()
+}
+
 func (s *OrderService) UpdateOrderStatus(id uint, status string) error {
 	return s.orderRepo.UpdateOrderStatus(id, status)
 }

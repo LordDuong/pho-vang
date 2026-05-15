@@ -12,7 +12,7 @@ type OrderRepository struct {
 
 type TopItemResult struct {
 	MenuItemID    uint    `json:"menu_item_id"`
-	TotalQuantity int    `json:"total_quantity"`
+	TotalQuantity int     `json:"total_quantity"`
 	TotalRevenue  float64 `json:"total_revenue"`
 }
 
@@ -85,8 +85,8 @@ func (r *OrderRepository) GetTotalRevenue() (float64, error) {
 
 	err := r.db.
 		Model(&models.Order{}).
-		Where("status = ?", "done").
-		Select("COALESCE(SUM(total_price), 0)").
+		Where("status = ?", "paid").
+		Select("COALESCE(SUM(total), 0)").
 		Scan(&total).Error
 
 	return total, err
@@ -99,6 +99,22 @@ func (r *OrderRepository) GetTopItems(limit int) ([]TopItemResult, error) {
 		Model(&models.OrderItem{}).
 		Select("menu_item_id, SUM(quantity) AS total_quantity, SUM(price * quantity) AS total_revenue").
 		Group("menu_item_id").
+		Order("total_quantity DESC").
+		Limit(limit).
+		Scan(&results).Error
+
+	return results, err
+}
+
+func (r *OrderRepository) GetTopItemsFromPaidOrders(limit int) ([]TopItemResult, error) {
+	var results []TopItemResult
+
+	err := r.db.
+		Model(&models.OrderItem{}).
+		Joins("JOIN orders ON order_items.order_id = orders.id").
+		Where("orders.status = ?", "paid").
+		Select("order_items.menu_item_id, SUM(order_items.quantity) AS total_quantity, SUM(order_items.price * order_items.quantity) AS total_revenue").
+		Group("order_items.menu_item_id").
 		Order("total_quantity DESC").
 		Limit(limit).
 		Scan(&results).Error

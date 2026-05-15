@@ -12,6 +12,7 @@ import (
 
 type OrderHandler struct {
 	orderService *services.OrderService
+	saleService  *services.SaleService
 }
 
 func NewOrderHandler(orderService *services.OrderService) *OrderHandler {
@@ -20,30 +21,57 @@ func NewOrderHandler(orderService *services.OrderService) *OrderHandler {
 	}
 }
 
+func (h *OrderHandler) SetSaleService(saleService *services.SaleService) {
+	h.saleService = saleService
+}
+
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var request dto.CreateOrderRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "invalid request body",
+			"success": false,
+			"error":   "invalid request body",
 		})
 		return
 	}
 
+	var items []models.OrderItem
+	var totalPrice float64
+
+	for _, itemReq := range request.Items {
+		totalPrice += itemReq.Price * float64(itemReq.Quantity)
+		items = append(items, models.OrderItem{
+			MenuItemID: itemReq.MenuItemID,
+			Name:       itemReq.Name,
+			Emoji:      itemReq.Emoji,
+			Price:      itemReq.Price,
+			Quantity:   itemReq.Quantity,
+		})
+	}
+
 	order := models.Order{
+		Table:  request.TableName,
 		Status: "pending",
+		Total:  totalPrice,
+		Items:  items,
 	}
 
 	err := h.orderService.CreateOrder(&order)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to create order",
+			"success": false,
+			"error":   "failed to create order",
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, order)
+	c.JSON(http.StatusCreated, gin.H{
+		"success": true,
+		"data":    order,
+		"message": "Order created successfully",
+	})
 }
 
 func (h *OrderHandler) GetOrderByID(c *gin.Context) {
@@ -53,7 +81,8 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "invalid order id",
+			"success": false,
+			"error":   "invalid order id",
 		})
 		return
 	}
@@ -62,38 +91,73 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"message": "order not found",
+			"success": false,
+			"error":   "order not found",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, order)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    order,
+		"message": "Order retrieved successfully",
+	})
 }
 
 func (h *OrderHandler) GetOrdersByStatus(c *gin.Context) {
 	status := c.Query("status")
 
-	orders, err := h.orderService.GetOrdersByStatus(status)
+	var orders []models.Order
+	var err error
+
+	if status != "" {
+		orders, err = h.orderService.GetOrdersByStatus(status)
+	} else {
+		orders, err = h.orderService.GetAllOrders()
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to fetch orders",
+			"success": false,
+			"error":   "failed to fetch orders",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, orders)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    orders,
+		"message": "Orders retrieved successfully",
+	})
 }
 
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	idParam := c.Param("id")
-	status := c.Param("status")
 
 	id, err := strconv.ParseUint(idParam, 10, 64)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "invalid order id",
+			"success": false,
+			"error":   "invalid order id",
+		})
+		return
+	}
+
+	var request gin.H
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "invalid request body",
+		})
+		return
+	}
+
+	status, ok := request["status"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "status is required",
 		})
 		return
 	}
@@ -102,28 +166,33 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to update order status",
+			"success": false,
+			"error":   "failed to update order status",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "order status updated successfully",
+		"success": true,
+		"message": "Order status updated successfully",
 	})
 }
 
 func (h *OrderHandler) GetTotalRevenue(c *gin.Context) {
-	total, err := h.orderService.GetTotalRevenue()
+	stats, err := h.saleService.GetRevenueStats()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to calculate revenue",
+			"success": false,
+			"error":   "failed to calculate revenue",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"total_revenue": total,
+		"success": true,
+		"data":    stats,
+		"message": "Revenue retrieved successfully",
 	})
 }
 
@@ -132,10 +201,59 @@ func (h *OrderHandler) GetTopItems(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "failed to fetch top items",
+			"success": false,
+			"error":   "failed to fetch top items",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    items,
+		"message": "Top items retrieved successfully",
+	})
+}
+
+func (h *OrderHandler) CreateSale(c *gin.Context) {
+	var request dto.CreateSaleRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "invalid request body",
+		})
+		return
+	}
+
+	sale, err := h.saleService.CreateSale(request.OrderID, request.PayMethod)
+
+	if err != nil {
+		if err.Error() == "order not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"error":   "order not found",
+			})
+			return
+		}
+
+		if err.Error() == "order already paid" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "order already paid",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "failed to create sale",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"success": true,
+		"data":    sale,
+		"message": "Sale created successfully",
+	})
 }
