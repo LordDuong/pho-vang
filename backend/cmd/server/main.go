@@ -2,24 +2,48 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/TOM88bet/PHO-VANG/backend/config"
+	"github.com/TOM88bet/PHO-VANG/backend/internal/handlers"
+	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
+	"github.com/TOM88bet/PHO-VANG/backend/internal/repositories"
+	"github.com/TOM88bet/PHO-VANG/backend/internal/routes"
+	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
+
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	config.LoadEnv()
-	config.ConnectDatabase()
+	if err := config.LoadEnv(); err != nil {
+		log.Println(".env file not found, using system environment variables")
+	}
 
-	r := gin.Default()
+	if err := config.ConnectDatabase(); err != nil {
+		log.Fatal("failed to connect database: ", err)
+	}
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Go go",
-		})
-	})
+	if err := config.DB.AutoMigrate(
+		&models.Order{},
+		&models.OrderItem{},
+	); err != nil {
+		log.Fatal("failed to migrate database: ", err)
+	}
 
-	if err := r.Run(":8080"); err != nil {
-		log.Fatal(err)
+	orderRepository := repositories.NewOrderRepository(config.DB)
+	orderService := services.NewOrderService(orderRepository)
+	orderHandler := handlers.NewOrderHandler(orderService)
+
+	router := gin.Default()
+
+	routes.RegisterRoutes(router, orderHandler)
+
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	if err := router.Run(":" + port); err != nil {
+		log.Fatal("failed to start server: ", err)
 	}
 }

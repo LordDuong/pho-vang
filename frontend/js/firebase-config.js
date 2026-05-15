@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getApp, getApps, initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getDatabase,
   ref,
@@ -10,4 +10,16 @@ import {
   get,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-window.FirebaseRTDB = { initializeApp, getDatabase, ref, set, push, onValue, update, remove, get };
+export {
+  getApp,
+  getApps,
+  getDatabase,
+  get,
+  initializeApp,
+  onValue,
+  push,
+  ref,
+  remove,
+  set,
+  update,
+};
