@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -25,6 +26,8 @@ func ConnectDatabase() error {
 	if err != nil {
 		return err
 	}
+
+	database.AutoMigrate(&models.User{})
 
 	DB = database
 
