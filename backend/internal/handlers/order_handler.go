@@ -104,7 +104,7 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 	})
 }
 
-func (h *OrderHandler) GetOrdersByStatus(c *gin.Context) {
+func (h *OrderHandler) GetOrders(c *gin.Context) {
 	status := c.Query("status")
 
 	var orders []models.Order
@@ -178,7 +178,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	})
 }
 
-func (h *OrderHandler) GetTotalRevenue(c *gin.Context) {
+func (h *OrderHandler) GetRevenue(c *gin.Context) {
 	stats, err := h.saleService.GetRevenueStats()
 
 	if err != nil {

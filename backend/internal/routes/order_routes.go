@@ -7,12 +7,11 @@ import (
 )
 
 func RegisterOrderRoutes(router *gin.Engine, orderHandler *handlers.OrderHandler) {
-	api := router.Group("/api")
-	{
-		api.POST("/orders", orderHandler.CreateOrder)
-		api.GET("/orders", orderHandler.GetOrdersByStatus)
-		api.PATCH("/orders/:id/status", orderHandler.UpdateOrderStatus)
-		api.POST("/sales", orderHandler.CreateSale)
-		api.GET("/revenue", orderHandler.GetTotalRevenue)
-	}
+	router.POST("/api/orders", orderHandler.CreateOrder)
+	router.GET("/api/orders", orderHandler.GetOrders)
+	router.PATCH("/api/orders/:id/status", orderHandler.UpdateOrderStatus)
+
+	router.POST("/api/sales", orderHandler.CreateSale)
+
+	router.GET("/api/revenue", orderHandler.GetRevenue)
 }
