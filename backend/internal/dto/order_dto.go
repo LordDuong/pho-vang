@@ -3,11 +3,11 @@ package dto
 import "time"
 
 type CreateOrderItemRequest struct {
-	MenuItemID uint    `json:"menu_item_id"`
-	Name       string  `json:"name,omitempty"`
+	MenuItemID uint    `json:"menu_item_id" binding:"required"`
+	Name       string  `json:"name" binding:"required"`
 	Emoji      string  `json:"emoji,omitempty"`
-	Price      float64 `json:"price,omitempty"`
-	Quantity   int     `json:"quantity"`
+	Price      float64 `json:"price" binding:"required"`
+	Quantity   int     `json:"quantity" binding:"required"`
 }
 
 type CreateOrderRequest struct {

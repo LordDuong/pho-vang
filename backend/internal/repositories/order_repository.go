@@ -38,35 +38,36 @@ func (r *OrderRepository) GetOrderByID(id uint) (*models.Order, error) {
 	return &order, nil
 }
 
-func (r *OrderRepository) GetOrdersByCustomerID(customerID uint) ([]models.Order, error) {
+func (r *OrderRepository) GetAllOrders() ([]models.Order, error) {
 	var orders []models.Order
 
 	err := r.db.
 		Preload("Items").
-		Where("customer_id = ?", customerID).
 		Order("created_at DESC").
 		Find(&orders).Error
 
 	return orders, err
 }
 
-func (r *OrderRepository) GetOrdersByStatus(status string) ([]models.Order, error) {
+func (r *OrderRepository) GetOrdersWithFilters(status, tableName string) ([]models.Order, error) {
 	var orders []models.Order
 
-	err := r.db.
-		Preload("Items").
-		Where("status = ?", status).
-		Order("created_at ASC").
-		Find(&orders).Error
+	query := r.db
 
-	return orders, err
-}
+	conditions := map[string]interface{}{}
+	if status != "" {
+		conditions["status"] = status
+	}
+	if tableName != "" {
+		conditions["table_name"] = tableName
+	}
 
-func (r *OrderRepository) GetAllOrders() ([]models.Order, error) {
-	var orders []models.Order
+	if len(conditions) > 0 {
+		query = query.Where(conditions)
+	}
 
-	err := r.db.
-		Preload("Items").
+	query = query.Preload("Items")
+	err := query.
 		Order("created_at DESC").
 		Find(&orders).Error
 

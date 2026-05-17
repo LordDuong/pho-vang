@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/TOM88bet/PHO-VANG/backend/internal/constants"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/dto"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
@@ -36,10 +37,42 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		return
 	}
 
+	if request.TableName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "table_name is required",
+		})
+		return
+	}
+
+	if len(request.Items) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "items array cannot be empty",
+		})
+		return
+	}
+
 	var items []models.OrderItem
 	var totalPrice float64
 
 	for _, itemReq := range request.Items {
+		if itemReq.Quantity <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "quantity must be greater than 0",
+			})
+			return
+		}
+
+		if itemReq.Price < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "price cannot be negative",
+			})
+			return
+		}
+
 		totalPrice += itemReq.Price * float64(itemReq.Quantity)
 		items = append(items, models.OrderItem{
 			MenuItemID: itemReq.MenuItemID,
@@ -106,12 +139,13 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 
 func (h *OrderHandler) GetOrders(c *gin.Context) {
 	status := c.Query("status")
+	tableName := c.Query("table")
 
 	var orders []models.Order
 	var err error
 
-	if status != "" {
-		orders, err = h.orderService.GetOrdersByStatus(status)
+	if status != "" || tableName != "" {
+		orders, err = h.orderService.GetOrdersWithFilters(status, tableName)
 	} else {
 		orders, err = h.orderService.GetAllOrders()
 	}
@@ -162,9 +196,51 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 		return
 	}
 
+	validStatuses := []string{
+		constants.StatusPending,
+		constants.StatusConfirmed,
+		constants.StatusCooking,
+		constants.StatusReady,
+		constants.StatusServing,
+		constants.StatusWaitingPay,
+		constants.StatusPaid,
+	}
+
+	isValid := false
+	for _, valid := range validStatuses {
+		if status == valid {
+			isValid = true
+			break
+		}
+	}
+
+	if !isValid {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "invalid status value",
+		})
+		return
+	}
+
 	err = h.orderService.UpdateOrderStatus(uint(id), status)
 
 	if err != nil {
+		if err.Error() == "invalid status transition" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "invalid status transition",
+			})
+			return
+		}
+
+		if err.Error() == "order not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"error":   "order not found",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"error":   "failed to update order status",
@@ -196,24 +272,6 @@ func (h *OrderHandler) GetRevenue(c *gin.Context) {
 	})
 }
 
-func (h *OrderHandler) GetTopItems(c *gin.Context) {
-	items, err := h.orderService.GetTopItems(10)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"error":   "failed to fetch top items",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    items,
-		"message": "Top items retrieved successfully",
-	})
-}
-
 func (h *OrderHandler) CreateSale(c *gin.Context) {
 	var request dto.CreateSaleRequest
 
@@ -225,6 +283,45 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 		return
 	}
 
+	if request.OrderID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "order_id is required",
+		})
+		return
+	}
+
+	if request.PayMethod == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "pay_method is required",
+		})
+		return
+	}
+
+	validPayMethods := []string{
+		constants.PayMethodCash,
+		constants.PayMethodTransfer,
+		constants.PayMethodMomo,
+		constants.PayMethodVNPay,
+	}
+
+	isValid := false
+	for _, valid := range validPayMethods {
+		if request.PayMethod == valid {
+			isValid = true
+			break
+		}
+	}
+
+	if !isValid {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "invalid pay_method value",
+		})
+		return
+	}
+
 	sale, err := h.saleService.CreateSale(request.OrderID, request.PayMethod)
 
 	if err != nil {
@@ -232,6 +329,22 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"success": false,
 				"error":   "order not found",
+			})
+			return
+		}
+
+		if err.Error() == "order status must be waiting_pay to process payment" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "order status must be waiting_pay to process payment",
+			})
+			return
+		}
+
+		if err.Error() == "sale already exists for this order" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "sale already exists for this order",
 			})
 			return
 		}

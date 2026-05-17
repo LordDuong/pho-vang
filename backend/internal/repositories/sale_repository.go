@@ -60,3 +60,14 @@ func (r *SaleRepository) GetRecentSales(limit int) ([]models.Sale, error) {
 
 	return sales, err
 }
+
+func (r *SaleRepository) SaleExistsByOrderID(orderID uint) (bool, error) {
+	var count int64
+
+	err := r.db.
+		Model(&models.Sale{}).
+		Where("order_id = ?", orderID).
+		Count(&count).Error
+
+	return count > 0, err
+}

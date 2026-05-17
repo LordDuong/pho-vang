@@ -3,6 +3,7 @@ package services
 import (
 	"time"
 
+	"github.com/TOM88bet/PHO-VANG/backend/internal/constants"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/repositories"
 )
@@ -25,8 +26,17 @@ func (s *SaleService) CreateSale(orderID uint, payMethod string) (*models.Sale, 
 		return nil, err
 	}
 
-	if order.Status == "paid" {
-		return nil, ErrOrderAlreadyPaid
+	if order.Status != constants.StatusWaitingPay {
+		return nil, ErrInvalidPaymentStatus
+	}
+
+	saleExists, err := s.saleRepo.SaleExistsByOrderID(orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	if saleExists {
+		return nil, ErrDuplicateSale
 	}
 
 	now := time.Now()
@@ -42,7 +52,7 @@ func (s *SaleService) CreateSale(orderID uint, payMethod string) (*models.Sale, 
 		return nil, err
 	}
 
-	if err := s.orderRepo.UpdateOrderStatus(orderID, "paid"); err != nil {
+	if err := s.orderRepo.UpdateOrderStatus(orderID, constants.StatusPaid); err != nil {
 		return nil, err
 	}
 
