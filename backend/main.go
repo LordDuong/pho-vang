@@ -10,6 +10,7 @@ import (
 	"github.com/TOM88bet/PHO-VANG/backend/internal/repositories"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/routes"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +41,14 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:5500"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	}))
+
 	routes.RegisterRoutes(router, orderHandler, authHandler)
 
 	port := os.Getenv("APP_PORT")
