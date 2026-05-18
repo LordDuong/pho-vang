@@ -11,7 +11,6 @@ import (
 	"github.com/TOM88bet/PHO-VANG/backend/internal/routes"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
 	"github.com/gin-contrib/cors"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,29 +18,32 @@ func main() {
 	if err := config.LoadEnv(); err != nil {
 		log.Println(".env file not found, using system environment variables")
 	}
-
 	if err := config.ConnectDatabase(); err != nil {
 		log.Fatal("failed to connect database: ", err)
 	}
-
 	if err := config.DB.AutoMigrate(
 		&models.User{},
 		&models.Order{},
 		&models.OrderItem{},
+		&models.Sale{},
 	); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
 
+	// Order dependencies
 	orderRepository := repositories.NewOrderRepository(config.DB)
 	orderService := services.NewOrderService(orderRepository)
 	orderHandler := handlers.NewOrderHandler(orderService)
+	saleRepository := repositories.NewSaleRepository(config.DB)
+	saleService := services.NewSaleService(saleRepository, orderRepository)
+	orderHandler.SetSaleService(saleService)
 
+	// Auth dependencies
 	userRepository := repositories.NewUserRepository(config.DB)
 	authService := services.NewAuthService(userRepository)
 	authHandler := handlers.NewAuthHandler(authService)
 
 	router := gin.Default()
-
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:5500"},
 		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
@@ -55,7 +57,6 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("failed to start server: ", err)
 	}
