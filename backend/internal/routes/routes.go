@@ -7,12 +7,12 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHandler *handlers.AuthHandler) {
+	RegisterOrderRoutes(r, orderHandler)
+
 	api := r.Group("/api")
 	{
-		// Public
 		api.POST("/login", authHandler.Login)
 
-		// Protected
 		auth := api.Group("/", middleware.RequireAuth())
 		{
 			auth.POST("/employees", middleware.RequireRole("manager", "owner"), authHandler.CreateEmployee)

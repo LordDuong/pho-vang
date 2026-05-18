@@ -26,6 +26,7 @@ func main() {
 	if err := config.DB.AutoMigrate(
 		&models.Order{},
 		&models.OrderItem{},
+		&models.Sale{},
 	); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
@@ -33,6 +34,10 @@ func main() {
 	orderRepository := repositories.NewOrderRepository(config.DB)
 	orderService := services.NewOrderService(orderRepository)
 	orderHandler := handlers.NewOrderHandler(orderService)
+
+	saleRepository := repositories.NewSaleRepository(config.DB)
+	saleService := services.NewSaleService(saleRepository, orderRepository)
+	orderHandler.SetSaleService(saleService)
 
 	router := gin.Default()
 
