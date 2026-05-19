@@ -13,7 +13,7 @@ func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHand
 	{
 		api.POST("/login", authHandler.Login)
 
-		auth := api.Group("/", middleware.RequireAuth())
+		auth := api.Group("", middleware.RequireAuth())
 		{
 			auth.POST("/employees", middleware.RequireRole("manager", "owner"), authHandler.CreateEmployee)
 		}

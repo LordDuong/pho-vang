@@ -37,10 +37,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		})
 		return
 	}
+	token, err := services.GenerateToken(user.ID, user.Role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Không thể tạo token",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
+			"token": token,
 			"user": gin.H{
 				"id":       user.ID,
 				"username": user.Username,

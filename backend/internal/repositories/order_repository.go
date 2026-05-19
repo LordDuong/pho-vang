@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
-
 	"gorm.io/gorm"
 )
 
