@@ -47,3 +47,18 @@ func (s *AuthService) CreateEmployee(username, password, name, role string, wage
 	err = s.repo.Create(user)
 	return user, err
 }
+func (s *AuthService) GetEmployees() ([]models.User, error) {
+	return s.repo.FindAll()
+}
+
+func (s *AuthService) UpdateEmployee(id uint, updates map[string]interface{}) (*models.User, error) {
+	err := s.repo.Update(id, updates)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.FindByID(id)
+}
+
+func (s *AuthService) DeleteEmployee(id uint) error {
+	return s.repo.Delete(id)
+}

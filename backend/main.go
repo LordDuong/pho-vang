@@ -26,6 +26,7 @@ func main() {
 		&models.Order{},
 		&models.OrderItem{},
 		&models.Sale{},
+		&models.Attendance{},
 	); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
@@ -42,6 +43,9 @@ func main() {
 	userRepository := repositories.NewUserRepository(config.DB)
 	authService := services.NewAuthService(userRepository)
 	authHandler := handlers.NewAuthHandler(authService)
+	attendanceRepository := repositories.NewAttendanceRepository(config.DB)
+	attendanceService := services.NewAttendanceService(attendanceRepository)
+	attendanceHandler := handlers.NewAttendanceHandler(attendanceService)
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -51,7 +55,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	routes.RegisterRoutes(router, orderHandler, authHandler)
+	routes.RegisterRoutes(router, orderHandler, authHandler, attendanceHandler)
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
@@ -60,4 +64,5 @@ func main() {
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("failed to start server: ", err)
 	}
+
 }
