@@ -1,6 +1,6 @@
 package constants
 
-// Order Status
+// Trạng thái đơn hàng
 const (
 	StatusPending    = "pending"
 	StatusConfirmed  = "confirmed"
@@ -11,7 +11,7 @@ const (
 	StatusPaid       = "paid"
 )
 
-// Payment Methods
+// Phương thức thanh toán
 const (
 	PayMethodCash     = "Tiền mặt"
 	PayMethodTransfer = "Chuyển khoản"

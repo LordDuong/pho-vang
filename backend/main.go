@@ -27,6 +27,7 @@ func main() {
 		&models.OrderItem{},
 		&models.Sale{},
 		&models.Attendance{},
+		&models.MenuItem{},
 	); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
@@ -47,6 +48,11 @@ func main() {
 	attendanceService := services.NewAttendanceService(attendanceRepository)
 	attendanceHandler := handlers.NewAttendanceHandler(attendanceService)
 
+	// Menu dependencies
+	menuRepository := repositories.NewMenuRepository(config.DB)
+	menuService := services.NewMenuService(menuRepository)
+	menuHandler := handlers.NewMenuHandler(menuService)
+
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:5500"},
@@ -55,8 +61,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	routes.RegisterRoutes(router, orderHandler, authHandler, attendanceHandler)
-
+	routes.RegisterRoutes(router, orderHandler, authHandler, attendanceHandler, menuHandler)
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"
