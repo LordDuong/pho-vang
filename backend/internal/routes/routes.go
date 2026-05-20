@@ -13,14 +13,14 @@ func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHand
 	{
 		api.POST("/login", authHandler.Login)
 
-		// Endpoint công khai
+		// public endpoint
 		api.GET("/menu", menuHandler.GetMenuItems)
 
 		auth := api.Group("", middleware.RequireAuth())
 		{
 			auth.POST("/employees", middleware.RequireRole("manager", "owner"), authHandler.CreateEmployee)
 
-			// Endpoints bảo vệ
+			// protected
 			auth.POST("/menu", middleware.RequireRole("manager", "owner"), menuHandler.CreateMenuItem)
 			auth.PATCH("/menu/:id", middleware.RequireRole("manager", "owner"), menuHandler.UpdateMenuItem)
 			auth.DELETE("/menu/:id", middleware.RequireRole("manager", "owner"), menuHandler.DeleteMenuItem)
