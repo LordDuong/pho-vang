@@ -265,17 +265,9 @@ func (h *OrderHandler) GetRevenue(c *gin.Context) {
 		return
 	}
 
-	revenueData := dto.RevenueResponse{
-		TotalRevenue: stats["total_revenue"].(float64),
-		TotalOrders:  stats["total_orders"].(int64),
-		AverageOrder: stats["average_order"].(float64),
-		TopItems:     stats["top_items"].([]dto.TopItemData),
-		RecentSales:  stats["recent_sales"].([]dto.SaleResponse),
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    revenueData,
+		"data":    stats,
 		"message": "Revenue retrieved successfully",
 	})
 }

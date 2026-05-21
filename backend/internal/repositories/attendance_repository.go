@@ -51,3 +51,11 @@ func (r *AttendanceRepository) FindByUserID(userID uint) ([]models.Attendance, e
 		Find(&records).Error
 	return records, err
 }
+
+func (r *AttendanceRepository) FindByUserIDAndDateRange(userID uint, from, to time.Time) ([]models.Attendance, error) {
+	var records []models.Attendance
+	err := r.db.
+		Where("user_id = ? AND date >= ? AND date < ?", userID, from, to).
+		Find(&records).Error
+	return records, err
+}

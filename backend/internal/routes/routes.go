@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHandler *handlers.AuthHandler, attendanceHandler *handlers.AttendanceHandler, menuHandler *handlers.MenuHandler) {
+func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHandler *handlers.AuthHandler, attendanceHandler *handlers.AttendanceHandler, menuHandler *handlers.MenuHandler, salaryHandler *handlers.SalaryHandler, scheduleHandler *handlers.ScheduleHandler) {
 	RegisterOrderRoutes(r, orderHandler)
 
 	api := r.Group("/api")
@@ -30,6 +30,13 @@ func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHand
 			auth.POST("/menu", middleware.RequireRole("manager", "owner"), menuHandler.CreateMenuItem)
 			auth.PATCH("/menu/:id", middleware.RequireRole("manager", "owner"), menuHandler.UpdateMenuItem)
 			auth.DELETE("/menu/:id", middleware.RequireRole("manager", "owner"), menuHandler.DeleteMenuItem)
+
+			//salary routes
+			auth.GET("/salary", middleware.RequireRole("manager", "owner"), salaryHandler.GetSalary)
+
+			//schedule routes
+			auth.GET("/schedule", middleware.RequireRole("manager", "owner", "waiter", "cashier", "kitchen"), scheduleHandler.GetSchedule)
+			auth.PUT("/schedule", middleware.RequireRole("manager", "owner"), scheduleHandler.UpdateSchedule)
 		}
 	}
 }
