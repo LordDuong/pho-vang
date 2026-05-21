@@ -10,136 +10,59 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body data-page="index">
-<!-- ══ SETUP ══ -->
-    <div id="setup-screen" class="screen show">
-      <div class="card setup-card">
-        <h2>🔥 Kết nối Firebase Realtime</h2>
-        <p class="sub">
-          Để đơn hàng và điểm danh sync real-time giữa các máy, cần Firebase
-          Realtime Database (miễn phí). Chỉ cần setup một lần.
-        </p>
-        <div class="steps-box">
-          <ol>
-            <li>
-              Vào <strong>console.firebase.google.com</strong> → Tạo project
-            </li>
-            <li>
-              <strong>Realtime Database</strong> → Create →
-              <code>Start in test mode</code>
-            </li>
-            <li>
-              ⚙️ Project Settings → <code>&lt;/&gt;</code> Web app → copy
-              <code>firebaseConfig</code>
-            </li>
-            <li>Dán vào ô dưới → Kết nối</li>
-          </ol>
-        </div>
-        <div class="inp-g">
-          <label>Firebase Config JSON</label>
-          <textarea
-            id="fb-cfg"
-            placeholder='{"apiKey":"...","databaseURL":"https://xxx-default-rtdb.firebaseio.com",...}'
-          ></textarea>
-        </div>
-        <div class="setup-err" id="setup-err"></div>
-        <button class="btn-primary" onclick="connectFirebase()">
-          ⚡ Kết nối & Bắt đầu
-        </button>
-        <span class="skip-link" onclick="useLocal()"
-          >Bỏ qua — Dùng chế độ local (1 máy, không sync)</span
-        >
-      </div>
-    </div>
 
-    <!-- ══ CONNECTING ══ -->
-    <div id="connecting">
-      <div class="spinner"></div>
-      <div style="color: var(--gold); font-size: 13px">
-        Đang kết nối Firebase...
-      </div>
-    </div>
-
-    <!-- ══ LOGIN ══ -->
-    <div id="login-screen" class="screen">
+    <div id="login-screen" class="screen show">
       <div class="card" style="padding: 36px 32px; width: 480px">
         <div class="logo-wrap">
           <span class="rest-name">🍜 Phở Vàng</span>
           <div class="divider"></div>
           <span class="tagline">Hệ Thống Quản Lý Nhà Hàng</span>
         </div>
-        <div class="fb-badge">
-          <div class="fb-dot on" id="fb-dot"></div>
-          <span id="fb-txt">Firebase — Sync real-time đang bật</span>
-        </div>
 
         <div class="role-grid" id="role-grid">
-          <button
-            class="role-tab"
-            onclick="selRole('customer')"
-            id="tab-customer"
-          >
+          <button class="role-tab" onclick="window.selRole('customer')" id="tab-customer">
             <span class="role-icon">👤</span>Khách
           </button>
-          <button class="role-tab" onclick="selRole('waiter')" id="tab-waiter">
+          <button class="role-tab" onclick="window.selRole('waiter')" id="tab-waiter">
             <span class="role-icon">🛎️</span>Phục vụ
           </button>
-          <button
-            class="role-tab"
-            onclick="selRole('cashier')"
-            id="tab-cashier"
-          >
+          <button class="role-tab" onclick="window.selRole('cashier')" id="tab-cashier">
             <span class="role-icon">💳</span>Thu ngân
           </button>
-          <button
-            class="role-tab"
-            onclick="selRole('kitchen')"
-            id="tab-kitchen"
-          >
+          <button class="role-tab" onclick="window.selRole('kitchen')" id="tab-kitchen">
             <span class="role-icon">👨‍🍳</span>Đầu bếp
           </button>
-          <button
-            class="role-tab"
-            onclick="selRole('manager')"
-            id="tab-manager"
-          >
+          <button class="role-tab" onclick="window.selRole('manager')" id="tab-manager">
             <span class="role-icon">📋</span>Quản lý
           </button>
-          <button class="role-tab" onclick="selRole('owner')" id="tab-owner">
+          <button class="role-tab" onclick="window.selRole('owner')" id="tab-owner">
             <span class="role-icon">👑</span>Chủ quán
           </button>
         </div>
 
         <div id="login-fields">
           <div class="fg">
-            <label>Tên đăng nhập</label
-            ><input type="text" id="u" placeholder="Nhập tên đăng nhập..." />
+            <label>Tên đăng nhập</label>
+            <input type="text" id="u" placeholder="Nhập tên đăng nhập..." />
           </div>
           <div class="fg">
-            <label>Mật khẩu</label
-            ><input
+            <label>Mật khẩu</label>
+            <input
               type="password"
               id="p"
               placeholder="Nhập mật khẩu..."
-              onkeydown="if (event.key === 'Enter') doLogin();"
+              onkeydown="if (event.key === 'Enter') window.doLogin();"
             />
           </div>
           <div class="err-msg" id="lerr">
             ❌ Sai tên đăng nhập hoặc mật khẩu
           </div>
-          <button
-            class="btn-primary"
-            onclick="doLogin()"
-            style="margin-top: 6px"
-          >
+          <button class="btn-primary" onclick="window.doLogin()" style="margin-top: 6px">
             Đăng nhập →
           </button>
         </div>
-        <button
-          class="btn-guest"
-          id="btn-guest"
-          style="display: none"
-          onclick="guestLogin()"
-        >
+        
+        <button class="btn-guest" id="btn-guest" style="display: none" onclick="window.guestLogin()">
           🔙 Quay lại Menu
         </button>
 
@@ -154,7 +77,10 @@
         </div>
       </div>
     </div>
+    
     <div id="tc"></div>
-    <script type="module" src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    
+    <script src="js/auth.js"></script>
   </body>
 </html>
