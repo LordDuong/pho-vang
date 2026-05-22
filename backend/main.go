@@ -10,6 +10,7 @@ import (
 	"github.com/TOM88bet/PHO-VANG/backend/internal/repositories"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/routes"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
+	ws "github.com/TOM88bet/PHO-VANG/backend/internal/websocket"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -63,6 +64,11 @@ func main() {
 	scheduleService := services.NewScheduleService(scheduleRepository)
 	scheduleHandler := handlers.NewScheduleHandler(scheduleService)
 
+	wsHub := ws.NewHub()
+	wsHandler := ws.NewHandler(wsHub)
+	orderHandler.SetWebSocketHub(wsHub)
+	menuHandler.SetWebSocketHub(wsHub)
+
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:5500"},
@@ -71,7 +77,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	routes.RegisterRoutes(router, orderHandler, authHandler, attendanceHandler, menuHandler, salaryHandler, scheduleHandler)
+	routes.RegisterRoutes(router, orderHandler, authHandler, attendanceHandler, menuHandler, salaryHandler, scheduleHandler, wsHandler)
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8080"

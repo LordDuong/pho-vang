@@ -1,23 +1,31 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/TOM88bet/PHO-VANG/backend/internal/dto"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
+	ws "github.com/TOM88bet/PHO-VANG/backend/internal/websocket"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type MenuHandler struct {
 	menuService *services.MenuService
+	wsHub       *ws.Hub
 }
 
 func NewMenuHandler(menuService *services.MenuService) *MenuHandler {
 	return &MenuHandler{
 		menuService: menuService,
 	}
+}
+
+func (h *MenuHandler) SetWebSocketHub(wsHub *ws.Hub) {
+	h.wsHub = wsHub
 }
 
 func (h *MenuHandler) GetMenuItems(c *gin.Context) {
@@ -93,6 +101,8 @@ func (h *MenuHandler) CreateMenuItem(c *gin.Context) {
 		return
 	}
 
+	h.broadcastMenuToRoles("create", &menuItem)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
 		"data":    menuItem,
@@ -165,6 +175,11 @@ func (h *MenuHandler) UpdateMenuItem(c *gin.Context) {
 		return
 	}
 
+	updatedItem, err := h.menuService.GetMenuItemByID(uint(id))
+	if err == nil {
+		h.broadcastMenuToRoles("update", updatedItem)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Menu item updated successfully",
@@ -187,6 +202,14 @@ func (h *MenuHandler) DeleteMenuItem(c *gin.Context) {
 	err = h.menuService.DeleteMenuItem(uint(id))
 
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"error":   "menu item not found",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"error":   "failed to delete menu item",
@@ -194,8 +217,27 @@ func (h *MenuHandler) DeleteMenuItem(c *gin.Context) {
 		return
 	}
 
+	if deletedItem, err := h.menuService.GetMenuItemByID(uint(id)); err == nil {
+		deletedItem.Avail = false
+		h.broadcastMenuToRoles("delete", deletedItem)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Menu item deleted successfully",
+	})
+}
+
+func (h *MenuHandler) broadcastMenuToRoles(action string, item *models.MenuItem) {
+	if h.wsHub == nil || item == nil {
+		return
+	}
+
+	h.wsHub.BroadcastToRoles([]string{"customer", "manager", "owner"}, ws.Message{
+		Event: "menu_updated",
+		Data: gin.H{
+			"action": action,
+			"item":   item,
+		},
 	})
 }

@@ -1,11 +1,14 @@
 package services
 
 import (
+	"errors"
 	"time"
 
 	"github.com/TOM88bet/PHO-VANG/backend/internal/constants"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/repositories"
+	mysql "github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 )
 
 type SaleService struct {
@@ -21,15 +24,6 @@ func NewSaleService(saleRepo *repositories.SaleRepository, orderRepo *repositori
 }
 
 func (s *SaleService) CreateSale(orderID uint, payMethod string) (*models.Sale, error) {
-	order, err := s.orderRepo.GetOrderByID(orderID)
-	if err != nil {
-		return nil, err
-	}
-
-	if order.Status != constants.StatusWaitingPay {
-		return nil, ErrInvalidPaymentStatus
-	}
-
 	saleExists, err := s.saleRepo.SaleExistsByOrderID(orderID)
 	if err != nil {
 		return nil, err
@@ -37,6 +31,15 @@ func (s *SaleService) CreateSale(orderID uint, payMethod string) (*models.Sale, 
 
 	if saleExists {
 		return nil, ErrDuplicateSale
+	}
+
+	order, err := s.orderRepo.GetOrderByID(orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	if order.Status != constants.StatusWaitingPay {
+		return nil, ErrInvalidPaymentStatus
 	}
 
 	now := time.Now()
@@ -48,11 +51,25 @@ func (s *SaleService) CreateSale(orderID uint, payMethod string) (*models.Sale, 
 		CompletedAt: now,
 	}
 
-	if err := s.saleRepo.CreateSale(sale); err != nil {
-		return nil, err
-	}
+	err = s.saleRepo.Transaction(func(tx *gorm.DB) error {
+		txSaleRepo := s.saleRepo.WithDB(tx)
+		txOrderRepo := s.orderRepo.WithDB(tx)
 
-	if err := s.orderRepo.UpdateOrderStatus(orderID, constants.StatusPaid); err != nil {
+		if err := txSaleRepo.CreateSale(sale); err != nil {
+			var me *mysql.MySQLError
+			if errors.As(err, &me) && me.Number == 1062 {
+				return ErrDuplicateSale
+			}
+			return err
+		}
+
+		if err := txOrderRepo.UpdateOrderStatus(orderID, constants.StatusPaid); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 

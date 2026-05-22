@@ -40,15 +40,33 @@ func (r *MenuRepository) GetAll() ([]models.MenuItem, error) {
 }
 
 func (r *MenuRepository) Update(id uint, data map[string]interface{}) error {
-	return r.db.
+	result := r.db.
 		Model(&models.MenuItem{}).
 		Where("id = ?", id).
-		Updates(data).Error
+		Updates(data)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }
 
 func (r *MenuRepository) SoftDelete(id uint) error {
-	return r.db.
+	result := r.db.
 		Model(&models.MenuItem{}).
 		Where("id = ?", id).
-		Update("avail", false).Error
+		Update("avail", false)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }

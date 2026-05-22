@@ -19,6 +19,10 @@ func NewOrderRepository(db *gorm.DB) *OrderRepository {
 	return &OrderRepository{db: db}
 }
 
+func (r *OrderRepository) WithDB(db *gorm.DB) *OrderRepository {
+	return &OrderRepository{db: db}
+}
+
 func (r *OrderRepository) CreateOrder(order *models.Order) error {
 	return r.db.Create(order).Error
 }
@@ -74,10 +78,19 @@ func (r *OrderRepository) GetOrdersWithFilters(status, tableName string) ([]mode
 }
 
 func (r *OrderRepository) UpdateOrderStatus(id uint, status string) error {
-	return r.db.
+	result := r.db.
 		Model(&models.Order{}).
 		Where("id = ?", id).
-		Update("status", status).Error
+		Update("status", status)
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }
 
 func (r *OrderRepository) GetTotalRevenue() (float64, error) {

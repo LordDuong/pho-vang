@@ -3,10 +3,12 @@ package routes
 import (
 	"github.com/TOM88bet/PHO-VANG/backend/internal/handlers"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/middleware"
+	ws "github.com/TOM88bet/PHO-VANG/backend/internal/websocket"
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHandler *handlers.AuthHandler, attendanceHandler *handlers.AttendanceHandler, menuHandler *handlers.MenuHandler, salaryHandler *handlers.SalaryHandler, scheduleHandler *handlers.ScheduleHandler) {
+func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHandler *handlers.AuthHandler, attendanceHandler *handlers.AttendanceHandler, menuHandler *handlers.MenuHandler, salaryHandler *handlers.SalaryHandler, scheduleHandler *handlers.ScheduleHandler, wsHandler *ws.Handler) {
+	r.GET("/ws", wsHandler.ServeWS)
 	RegisterOrderRoutes(r, orderHandler)
 
 	api := r.Group("/api")

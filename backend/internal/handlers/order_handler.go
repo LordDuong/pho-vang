@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -8,12 +9,15 @@ import (
 	"github.com/TOM88bet/PHO-VANG/backend/internal/dto"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/services"
+	ws "github.com/TOM88bet/PHO-VANG/backend/internal/websocket"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type OrderHandler struct {
 	orderService *services.OrderService
 	saleService  *services.SaleService
+	wsHub        *ws.Hub
 }
 
 func NewOrderHandler(orderService *services.OrderService) *OrderHandler {
@@ -24,6 +28,10 @@ func NewOrderHandler(orderService *services.OrderService) *OrderHandler {
 
 func (h *OrderHandler) SetSaleService(saleService *services.SaleService) {
 	h.saleService = saleService
+}
+
+func (h *OrderHandler) SetWebSocketHub(wsHub *ws.Hub) {
+	h.wsHub = wsHub
 }
 
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
@@ -98,6 +106,11 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 			"error":   "failed to create order",
 		})
 		return
+	}
+
+	createdOrder, err := h.orderService.GetOrderByID(order.ID)
+	if err == nil {
+		h.broadcastOrderToRoles("new_order", createdOrder)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -225,7 +238,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	err = h.orderService.UpdateOrderStatus(uint(id), status)
 
 	if err != nil {
-		if err.Error() == "invalid status transition" {
+		if errors.Is(err, services.ErrInvalidStatusTransition) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
 				"error":   "invalid status transition",
@@ -233,7 +246,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 			return
 		}
 
-		if err.Error() == "order not found" {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"success": false,
 				"error":   "order not found",
@@ -246,6 +259,11 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 			"error":   "failed to update order status",
 		})
 		return
+	}
+
+	updatedOrder, err := h.orderService.GetOrderByID(uint(id))
+	if err == nil {
+		h.broadcastOrderToRoles("order_updated", updatedOrder)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -325,15 +343,7 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 	sale, err := h.saleService.CreateSale(request.OrderID, request.PayMethod)
 
 	if err != nil {
-		if err.Error() == "order not found" {
-			c.JSON(http.StatusNotFound, gin.H{
-				"success": false,
-				"error":   "order not found",
-			})
-			return
-		}
-
-		if err.Error() == "order status must be waiting_pay to process payment" {
+		if errors.Is(err, services.ErrInvalidPaymentStatus) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
 				"error":   "order status must be waiting_pay to process payment",
@@ -341,7 +351,7 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 			return
 		}
 
-		if err.Error() == "sale already exists for this order" {
+		if errors.Is(err, services.ErrDuplicateSale) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
 				"error":   "sale already exists for this order",
@@ -349,10 +359,10 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 			return
 		}
 
-		if err.Error() == "order already paid" {
-			c.JSON(http.StatusBadRequest, gin.H{
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
 				"success": false,
-				"error":   "order already paid",
+				"error":   "order not found",
 			})
 			return
 		}
@@ -364,9 +374,33 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 		return
 	}
 
+	h.broadcastSaleToRoles("order_paid", sale)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
 		"data":    sale,
 		"message": "Sale created successfully",
+	})
+}
+
+func (h *OrderHandler) broadcastOrderToRoles(event string, order *models.Order) {
+	if h.wsHub == nil || order == nil {
+		return
+	}
+
+	h.wsHub.BroadcastToRoles([]string{"waiter", "kitchen", "cashier", "manager", "owner"}, ws.Message{
+		Event: event,
+		Data:  order,
+	})
+}
+
+func (h *OrderHandler) broadcastSaleToRoles(event string, sale *models.Sale) {
+	if h.wsHub == nil || sale == nil {
+		return
+	}
+
+	h.wsHub.BroadcastToRoles([]string{"cashier", "manager", "owner"}, ws.Message{
+		Event: event,
+		Data:  sale,
 	})
 }

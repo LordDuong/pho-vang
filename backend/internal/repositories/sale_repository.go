@@ -13,6 +13,14 @@ func NewSaleRepository(db *gorm.DB) *SaleRepository {
 	return &SaleRepository{db: db}
 }
 
+func (r *SaleRepository) WithDB(db *gorm.DB) *SaleRepository {
+	return &SaleRepository{db: db}
+}
+
+func (r *SaleRepository) Transaction(fn func(tx *gorm.DB) error) error {
+	return r.db.Transaction(fn)
+}
+
 func (r *SaleRepository) CreateSale(sale *models.Sale) error {
 	return r.db.Create(sale).Error
 }
