@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/TOM88bet/PHO-VANG/backend/internal/constants"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/dto"
@@ -151,14 +152,20 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 }
 
 func (h *OrderHandler) GetOrders(c *gin.Context) {
-	status := c.Query("status")
+	statuses, err := parseOrderStatuses(c.QueryArray("status"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	tableName := c.Query("table")
 
 	var orders []models.Order
-	var err error
-
-	if status != "" || tableName != "" {
-		orders, err = h.orderService.GetOrdersWithFilters(status, tableName)
+	if len(statuses) > 0 || tableName != "" {
+		orders, err = h.orderService.GetOrdersWithFilters(statuses, tableName)
 	} else {
 		orders, err = h.orderService.GetAllOrders()
 	}
@@ -176,6 +183,43 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 		"data":    orders,
 		"message": "Orders retrieved successfully",
 	})
+}
+
+func parseOrderStatuses(rawStatuses []string) ([]string, error) {
+	allowed := map[string]struct{}{
+		constants.StatusPending:    {},
+		constants.StatusConfirmed:  {},
+		constants.StatusCooking:    {},
+		constants.StatusReady:      {},
+		constants.StatusServing:    {},
+		constants.StatusWaitingPay: {},
+		constants.StatusPaid:       {},
+	}
+
+	seen := make(map[string]struct{})
+	statuses := make([]string, 0)
+
+	for _, rawStatus := range rawStatuses {
+		for _, status := range strings.Split(rawStatus, ",") {
+			status = strings.TrimSpace(status)
+			if status == "" {
+				continue
+			}
+
+			if _, ok := allowed[status]; !ok {
+				return nil, errors.New("invalid status value")
+			}
+
+			if _, ok := seen[status]; ok {
+				continue
+			}
+
+			seen[status] = struct{}{}
+			statuses = append(statuses, status)
+		}
+	}
+
+	return statuses, nil
 }
 
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {

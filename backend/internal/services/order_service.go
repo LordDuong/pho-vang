@@ -40,8 +40,8 @@ func (s *OrderService) GetAllOrders() ([]models.Order, error) {
 	return s.orderRepo.GetAllOrders()
 }
 
-func (s *OrderService) GetOrdersWithFilters(status, tableName string) ([]models.Order, error) {
-	return s.orderRepo.GetOrdersWithFilters(status, tableName)
+func (s *OrderService) GetOrdersWithFilters(statuses []string, tableName string) ([]models.Order, error) {
+	return s.orderRepo.GetOrdersWithFilters(statuses, tableName)
 }
 
 func (s *OrderService) UpdateOrderStatus(id uint, status string) error {

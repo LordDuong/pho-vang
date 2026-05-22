@@ -52,14 +52,16 @@ func (r *OrderRepository) GetAllOrders() ([]models.Order, error) {
 	return orders, err
 }
 
-func (r *OrderRepository) GetOrdersWithFilters(status, tableName string) ([]models.Order, error) {
+func (r *OrderRepository) GetOrdersWithFilters(statuses []string, tableName string) ([]models.Order, error) {
 	var orders []models.Order
 
 	query := r.db
 
 	conditions := map[string]interface{}{}
-	if status != "" {
-		conditions["status"] = status
+	if len(statuses) == 1 {
+		conditions["status"] = statuses[0]
+	} else if len(statuses) > 1 {
+		query = query.Where("status IN ?", statuses)
 	}
 	if tableName != "" {
 		conditions["table_name"] = tableName
