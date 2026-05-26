@@ -1,23 +1,29 @@
 ﻿:root {
-        --gold: #c9a84c;
-        --gold-l: #e8c97a;
-        --gold-d: #8b6914;
-        --dark: #1a1410;
-        --dark2: #2c2118;
-        --dark3: #3d2e1e;
-        --mid: #5c4433;
-        --cream: #f5edd8;
-        --cream2: #ede0c4;
+  /* Brand palette requested by user */
+  --gold: #F39C12;     /* primary brand (buttons, active) */
+  --accent: #D35400;   /* deep chili-oil for badges/alerts */
+  --gold-l: #F7C37A;   /* lighter accent */
+  --gold-d: #B26F0D;   /* darker accent */
+  --brand-grad: linear-gradient(135deg,var(--gold),var(--accent));
+
+  --dark: #FCFBF8;     /* background base (soft warm cream) */
+  --dark2: #FFFFFF;    /* card backgrounds (pure white) */
+  --dark3: #F7F2EA;    /* subtle surface */
+
+  --mid: #E6E0D8;      /* neutral mid */
+  --cream: #2C3E50;    /* primary text (dark slate) */
+  --cream2: #7F8C8D;   /* secondary text (medium grey) */
+
         --green: #27ae60;
         --green-d: #1e8449;
         --blue: #2e86ab;
-        --orange: #e67e22;
         --red: #c0392b;
         --purple: #8e44ad;
         --teal: #16a085;
         --pink: #e91e8c;
+
         --radius: 12px;
-        --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --shadow: 0 8px 32px rgba(20, 15, 15, 0.06);
       }
       * {
         margin: 0;
@@ -77,7 +83,8 @@
 
       /* ─── SCREENS ─── */
       .screen {
-        min-height: 100vh;
+        width: 100%;
+        height: 100vh;
         display: none;
         align-items: center;
         justify-content: center;
@@ -405,7 +412,7 @@
         display: flex;
       }
       .topbar {
-        background: linear-gradient(135deg, var(--dark2), var(--dark3));
+        background: var(--brand-grad);
         border-bottom: 1px solid rgba(201, 168, 76, 0.2);
         padding: 0 20px;
         display: flex;
@@ -420,26 +427,26 @@
       .tb-brand {
         font-family: "Playfair Display", serif;
         font-size: 20px;
-        color: var(--gold);
+        color: white;
         display: flex;
         align-items: center;
         gap: 8px;
       }
       .live-chip {
         font-size: 10px;
-        background: rgba(39, 174, 96, 0.15);
-        border: 1px solid rgba(39, 174, 96, 0.3);
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.12);
         border-radius: 10px;
         padding: 2px 8px;
-        color: var(--green);
+        color: white;
         display: flex;
         align-items: center;
         gap: 3px;
       }
       .live-chip.local {
-        background: rgba(230, 126, 34, 0.15);
-        border-color: rgba(230, 126, 34, 0.3);
-        color: var(--orange);
+        background: rgba(255,255,255,0.14);
+        border-color: rgba(255,255,255,0.14);
+        color: white;
       }
       .ld {
         width: 5px;
@@ -675,23 +682,23 @@
         font-size: 12px;
       }
       .btn-add {
-        background: var(--gold);
+        background: linear-gradient(135deg,var(--gold),var(--accent));
         border: none;
         border-radius: 6px;
-        color: var(--dark);
-        width: 22px;
-        height: 22px;
+        color: white;
+        width: 26px;
+        height: 26px;
         font-size: 15px;
         font-weight: 700;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.15s;
+        transition: all 0.12s;
       }
       .btn-add:hover {
-        background: var(--gold-l);
-        transform: scale(1.1);
+        filter: brightness(1.06);
+        transform: translateY(-1px);
       }
 
       /* ─── CART ─── */
@@ -716,7 +723,7 @@
         color: var(--gold);
       }
       .cart-cnt {
-        background: var(--red);
+        background: var(--accent);
         color: #fff;
         border-radius: 12px;
         padding: 1px 7px;
@@ -833,20 +840,20 @@
       }
       .btn-order {
         width: 100%;
-        padding: 10px;
-        background: linear-gradient(135deg, var(--green), var(--green-d));
+        padding: 12px;
+        background: var(--brand-grad);
         border: none;
         border-radius: 8px;
-        color: #fff;
+        color: white;
         font-family: "Be Vietnam Pro", sans-serif;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 700;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.18s;
       }
-      .btn-order:hover {
-        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+      .btn-primary:hover {
         transform: translateY(-1px);
+        box-shadow: 0 8px 28px rgba(243,156,18,0.18);
       }
       .btn-order:disabled {
         opacity: 0.4;

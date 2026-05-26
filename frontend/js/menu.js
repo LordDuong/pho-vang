@@ -17,7 +17,7 @@ import {
   state,
   toast,
 } from "./app.js";
-import { push, ref, set } from "./firebase-config.js";
+
 
 const renderMenu = (category) => {
   const grid = document.getElementById("menu-grid");
@@ -164,14 +164,9 @@ const confirmOrder = async () => {
     })),
   };
 
-  if (state.FB) {
-    const orderRef = push(ref(state.DB, "orders"));
-    await set(orderRef, { ...order, fbKey: orderRef.key });
-  } else {
-    const key = `o${Date.now()}`;
-    state.activeOrders[key] = { ...order, fbKey: key };
-    persistLocalData();
-  }
+  const key = `o${Date.now()}`;
+  state.activeOrders[key] = { ...order, fbKey: key };
+  persistLocalData();
 
   closeMod("pay-modal");
   state.cart = [];
@@ -207,6 +202,10 @@ const bootMenuPage = async () => {
 
 registerRoleHandler("customer", {
   show() {
+    // Activate customer view
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const view = document.getElementById('view-customer');
+    if (view) view.classList.add('active');
     renderMenu(state.currentCategory);
     renderCart();
   },
