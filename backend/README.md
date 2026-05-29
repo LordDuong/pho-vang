@@ -57,6 +57,7 @@ handler -> service -> repository -> database
     - [Quy tắc](#quy-tắc)
   - [Ví dụ request / response](#ví-dụ-request--response)
     - [1. Login](#1-login)
+    - [Demo accounts](#demo-accounts)
     - [2. Create order](#2-create-order)
     - [3. Create sale](#3-create-sale)
     - [4. Error example](#4-error-example)
@@ -493,6 +494,20 @@ Response:
   }
 }
 ```
+
+### Demo accounts
+
+The local development database uses a shared password for the main demo users below. The password is stored in MySQL as a bcrypt hash and the plaintext value for testing is `123456`.
+
+| Username    | Role      | Password |
+| ----------- | --------- | -------- |
+| `owner`     | `owner`   | `123456` |
+| `manager01` | `manager` | `123456` |
+| `cashier`   | `cashier` | `123456` |
+| `kitchen`   | `kitchen` | `123456` |
+| `waiter`    | `waiter`  | `123456` |
+
+
 
 ### 2. Create order
 
