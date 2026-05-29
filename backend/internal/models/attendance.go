@@ -11,5 +11,5 @@ type Attendance struct {
 	CheckedOut *time.Time `json:"checked_out"`
 	TotalHours float64    `json:"total_hours" gorm:"default:0"`
 	Late       bool       `json:"late" gorm:"default:false"`
-	Status     string     `json:"status" gorm:"type:varchar(20);default:'absent'"`
+	Status     string     `json:"status" gorm:"type:varchar(20);default:'absent';index"`
 }

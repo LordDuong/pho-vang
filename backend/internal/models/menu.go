@@ -7,7 +7,7 @@ type MenuItem struct {
 	Name      string    `json:"name" gorm:"type:varchar(255);not null;index"`
 	Cat       string    `json:"cat" gorm:"type:varchar(50);not null;index"`
 	Price     float64   `json:"price" gorm:"type:decimal(10,2);not null"`
-	Desc      string    `json:"desc" gorm:"type:text"`
+	Desc      string    `json:"des" gorm:"type:text"`
 	Img       string    `json:"img" gorm:"type:varchar(500)"`
 	Emoji     string    `json:"emoji" gorm:"type:varchar(10)"`
 	Avail     bool      `json:"avail" gorm:"default:true;index"`

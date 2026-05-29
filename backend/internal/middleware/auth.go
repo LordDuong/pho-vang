@@ -31,8 +31,16 @@ func RequireAuth() gin.HandlerFunc {
 			return
 		}
 
+		role := claims.Role
+		if role == "staff" {
+			role = "waiter"
+		}
+		if role == "admin" {
+			role = "owner"
+		}
+
 		c.Set("user_id", claims.UserID)
-		c.Set("role", claims.Role)
+		c.Set("role", role)
 		c.Next()
 	}
 }

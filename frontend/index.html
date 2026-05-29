@@ -3,84 +3,79 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/style.css" />
+    <title>Pho Vang - He thong nha hang</title>
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
-  <body data-page="index">
-
-    <div id="login-screen" class="screen show">
-      <div class="card" style="padding: 36px 32px; width: 480px">
-        <div class="logo-wrap">
-          <span class="rest-name">🍜 Phở Vàng</span>
-          <div class="divider"></div>
-          <span class="tagline">Hệ Thống Quản Lý Nhà Hàng</span>
-        </div>
-
-        <div class="role-grid" id="role-grid">
-          <button class="role-tab" onclick="window.selRole('customer')" id="tab-customer">
-            <span class="role-icon">👤</span>Khách
-          </button>
-          <button class="role-tab" onclick="window.selRole('waiter')" id="tab-waiter">
-            <span class="role-icon">🛎️</span>Phục vụ
-          </button>
-          <button class="role-tab" onclick="window.selRole('cashier')" id="tab-cashier">
-            <span class="role-icon">💳</span>Thu ngân
-          </button>
-          <button class="role-tab" onclick="window.selRole('kitchen')" id="tab-kitchen">
-            <span class="role-icon">👨‍🍳</span>Đầu bếp
-          </button>
-          <button class="role-tab" onclick="window.selRole('manager')" id="tab-manager">
-            <span class="role-icon">📋</span>Quản lý
-          </button>
-          <button class="role-tab" onclick="window.selRole('owner')" id="tab-owner">
-            <span class="role-icon">👑</span>Chủ quán
-          </button>
-        </div>
-
-        <div id="login-fields">
-          <div class="fg">
-            <label>Tên đăng nhập</label>
-            <input type="text" id="u" placeholder="Nhập tên đăng nhập..." />
+  <body>
+    <div class="app-shell">
+      <header class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">PV</span>
+          <div>
+            <strong>Pho Vang</strong>
+            <span>Quan ly nha hang</span>
           </div>
-          <div class="fg">
-            <label>Mật khẩu</label>
-            <input
-              type="password"
-              id="p"
-              placeholder="Nhập mật khẩu..."
-              onkeydown="if (event.key === 'Enter') window.doLogin();"
-            />
-          </div>
-          <div class="err-msg" id="lerr">
-            ❌ Sai tên đăng nhập hoặc mật khẩu
-          </div>
-          <button class="btn-primary" onclick="window.doLogin()" style="margin-top: 6px">
-            Đăng nhập →
-          </button>
         </div>
-        
-        <button class="btn-guest" id="btn-guest" style="display: none" onclick="window.guestLogin()">
-          🔙 Quay lại Menu
-        </button>
 
-        <div class="hint-box">
-          <div class="hint-sect">Nhân viên</div>
-          🛎️ Phục vụ: <strong>phucvu/1234</strong> &nbsp;|&nbsp; 💳 Thu ngân:
-          <strong>thungan/1234</strong><br />
-          👨‍🍳 Đầu bếp: <strong>daubep/1234</strong> &nbsp;|&nbsp; 📋 Quản lý:
-          <strong>quanly/1234</strong><br />
-          <div class="hint-sect" style="margin-top: 6px">Quản trị</div>
-          👑 Chủ quán: <strong>chuquan/1234</strong>
+        <input id="apiBase" type="hidden" value="http://localhost:8080" />
+
+        <nav class="role-nav" id="roleNav"></nav>
+
+        <section class="user-panel">
+          <span class="panel-label">Nguoi dung hien tai</span>
+          <div id="currentUser" class="current-user">Khach vang lai</div>
+          <button id="openLoginBtn" type="button">Dang nhap nhan vien</button>
+          <button id="logoutBtn" class="ghost hidden" type="button">Dang xuat</button>
+        </section>
+      </header>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Pho Vang</p>
+            <h1 id="pageTitle">Khach</h1>
+          </div>
+          <div class="connection">
+            <span id="wsDot" class="dot"></span>
+            <span id="wsStatus">WebSocket chua ket noi</span>
+          </div>
+        </header>
+
+        <div id="toast" class="toast hidden"></div>
+
+        <section id="customerView" class="view"></section>
+        <section id="waiterView" class="view hidden"></section>
+        <section id="cashierView" class="view hidden"></section>
+        <section id="kitchenView" class="view hidden"></section>
+        <section id="managerView" class="view hidden"></section>
+        <section id="ownerView" class="view hidden"></section>
+      </main>
+    </div>
+
+    <div id="loginModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Nhan vien</p>
+            <h2 id="loginTitle">Dang nhap</h2>
+          </div>
+          <button id="closeLoginBtn" class="ghost" type="button">Dong</button>
         </div>
+        <div class="login-grid">
+          <label class="field">
+            <span>Username</span>
+            <input id="username" placeholder="VD: staff" autocomplete="username" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="password" type="password" placeholder="VD: staff123" autocomplete="current-password" />
+          </label>
+          <button id="loginBtn" type="button">Dang nhap</button>
+        </div>
+        <p class="login-note">Khach hang khong can dang nhap de xem menu va gui don.</p>
       </div>
     </div>
-    
-    <div id="tc"></div>
-    <script src="js/api.js"></script>
-    
-    <script src="js/auth.js"></script>
+
+    <script src="./js/app.js"></script>
   </body>
 </html>

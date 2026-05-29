@@ -39,7 +39,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		})
 		return
 	}
-	token, err := services.GenerateToken(user.ID, user.Role)
+	role := user.Role
+	if role == "staff" {
+		role = "waiter"
+	}
+	if role == "admin" {
+		role = "owner"
+	}
+
+	token, err := services.GenerateToken(user.ID, role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -56,7 +64,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 				"id":       user.ID,
 				"username": user.Username,
 				"name":     user.Name,
-				"role":     user.Role,
+				"role":     role,
 				"wage":     user.Wage,
 			},
 		},
