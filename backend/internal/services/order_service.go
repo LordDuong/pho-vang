@@ -50,6 +50,10 @@ func (s *OrderService) UpdateOrderStatus(id uint, status string) error {
 		return err
 	}
 
+	if status == constants.StatusPaid {
+		return ErrDirectPaidUpdate
+	}
+
 	if !constants.IsValidStatusTransition(order.Status, status) {
 		return ErrInvalidStatusTransition
 	}

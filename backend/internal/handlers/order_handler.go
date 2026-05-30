@@ -282,6 +282,14 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	err = h.orderService.UpdateOrderStatus(uint(id), status)
 
 	if err != nil {
+		if errors.Is(err, services.ErrDirectPaidUpdate) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   "please use payment endpoint to mark order as paid",
+			})
+			return
+		}
+
 		if errors.Is(err, services.ErrInvalidStatusTransition) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,

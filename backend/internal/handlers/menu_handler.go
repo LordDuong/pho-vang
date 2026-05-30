@@ -46,6 +46,24 @@ func (h *MenuHandler) GetMenuItems(c *gin.Context) {
 	})
 }
 
+func (h *MenuHandler) GetAllMenuItems(c *gin.Context) {
+	items, err := h.menuService.GetAllMenuItems()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "failed to fetch menu items",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    items,
+		"message": "Menu items retrieved successfully",
+	})
+}
+
 func (h *MenuHandler) CreateMenuItem(c *gin.Context) {
 	var request dto.CreateMenuItemRequest
 

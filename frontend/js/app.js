@@ -7,7 +7,15 @@ const roles = [
   { id: "owner", label: "Chu quan" },
 ];
 
-const statusFlow = ["pending", "confirmed", "cooking", "ready", "serving", "waiting_pay", "paid"];
+const statusFlow = [
+  "pending",
+  "confirmed",
+  "cooking",
+  "ready",
+  "serving",
+  "waiting_pay",
+  "paid",
+];
 const statusLabels = {
   pending: "Moi tao",
   confirmed: "Da nhan",
@@ -32,7 +40,16 @@ function normalizeRole(role) {
 }
 
 const savedUser = JSON.parse(localStorage.getItem("user") || "null");
-const defaultTables = ["Ban 1", "Ban 2", "Ban 3", "Ban 4", "Ban 5", "Ban 6", "Ban 7", "Ban 8"];
+const defaultTables = [
+  "Ban 1",
+  "Ban 2",
+  "Ban 3",
+  "Ban 4",
+  "Ban 5",
+  "Ban 6",
+  "Ban 7",
+  "Ban 8",
+];
 const fixedShifts = [
   { value: "Ca 1", label: "Ca 1", time: "8:00 - 16:00" },
   { value: "Ca 2", label: "Ca 2", time: "16:00 - 24:00" },
@@ -42,18 +59,29 @@ const fixedShifts = [
 function getApiBase() {
   const params = new URLSearchParams(window.location.search);
   if (params.has("api")) return params.get("api");
-  return localStorage.getItem("apiBase") || window.location.origin.replace(/:5500.*/, ":8080");
+  return (
+    localStorage.getItem("apiBase") ||
+    window.location.origin.replace(/:5500.*/, ":8080")
+  );
 }
 
 const state = {
   apiBase: getApiBase(),
   token: localStorage.getItem("token") || "",
-  user: savedUser ? { ...savedUser, role: normalizeRole(savedUser.role) } : null,
-  role: localStorage.getItem("token") ? normalizeRole(localStorage.getItem("activeRole") || savedUser?.role || "customer") : "customer",
+  user: savedUser
+    ? { ...savedUser, role: normalizeRole(savedUser.role) }
+    : null,
+  role: localStorage.getItem("token")
+    ? normalizeRole(
+        localStorage.getItem("activeRole") || savedUser?.role || "customer",
+      )
+    : "customer",
   menu: [],
   orders: [],
   cart: JSON.parse(localStorage.getItem("cart") || "[]"),
-  tables: JSON.parse(localStorage.getItem("tables") || JSON.stringify(defaultTables)),
+  tables: JSON.parse(
+    localStorage.getItem("tables") || JSON.stringify(defaultTables),
+  ),
   selectedTable: localStorage.getItem("selectedTable") || defaultTables[0],
   employees: [],
   schedule: null,
@@ -64,7 +92,10 @@ const state = {
 };
 
 const $ = (selector) => document.querySelector(selector);
-const money = (value) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(value || 0));
+const money = (value) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+    Number(value || 0),
+  );
 const userId = (user) => user.id ?? user.ID;
 const usernameOf = (user) => user.username ?? user.Username ?? "";
 const nameOf = (user) => user.name ?? user.Name ?? "";
@@ -73,7 +104,9 @@ const wageOf = (user) => user.wage ?? user.Wage ?? 0;
 const formatDate = (value) => {
   if (!value) return "";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("vi-VN");
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("vi-VN");
 };
 const formatDateTime = (value) => {
   if (!value) return "";
@@ -87,7 +120,10 @@ function saveSession() {
   localStorage.setItem("cart", JSON.stringify(state.cart));
   localStorage.setItem("tables", JSON.stringify(state.tables));
   localStorage.setItem("selectedTable", state.selectedTable);
-  localStorage.setItem("chatMessages", JSON.stringify(state.chatMessages.slice(-20)));
+  localStorage.setItem(
+    "chatMessages",
+    JSON.stringify(state.chatMessages.slice(-20)),
+  );
   if (state.token) localStorage.setItem("token", state.token);
   if (state.user) localStorage.setItem("user", JSON.stringify(state.user));
 }
@@ -102,11 +138,15 @@ function toast(message, isError = false) {
 }
 
 async function api(path, options = {}) {
-  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
   if (state.token) headers.Authorization = `Bearer ${state.token}`;
   const res = await fetch(`${state.apiBase}${path}`, { ...options, headers });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok || body.success === false) throw new Error(body.error || body.message || "Request failed");
+  if (!res.ok || body.success === false)
+    throw new Error(body.error || body.message || "Request failed");
   return body.data ?? body;
 }
 
@@ -121,7 +161,9 @@ function setRole(role) {
 
 function renderShell() {
   $("#apiBase").value = state.apiBase;
-  $("#currentUser").textContent = state.user ? `${state.user.name || state.user.username} (${state.user.role})` : "Khach vang lai";
+  $("#currentUser").textContent = state.user
+    ? `${state.user.name || state.user.username} (${state.user.role})`
+    : "Khach vang lai";
   $("#openLoginBtn").classList.toggle("hidden", Boolean(state.token));
   $("#logoutBtn").classList.toggle("hidden", !state.token);
 
@@ -130,13 +172,27 @@ function renderShell() {
     ? roles.filter((role) => role.id === "customer" || role.id === employeeRole)
     : roles.filter((role) => role.id === "customer");
   $("#roleNav").innerHTML = visibleRoles
-    .map((role) => `<button type="button" data-role="${role.id}" class="${role.id === state.role ? "active" : ""}">${role.label}</button>`)
+    .map(
+      (role) =>
+        `<button type="button" data-role="${role.id}" class="${role.id === state.role ? "active" : ""}">${role.label}</button>`,
+    )
     .join("");
-  $("#roleNav").querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () => setRole(btn.dataset.role)));
+  $("#roleNav")
+    .querySelectorAll("button")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => setRole(btn.dataset.role)),
+    );
 
   const active = roles.find((role) => role.id === state.role);
-  $("#pageTitle").textContent = state.role === "customer" ? "Menu goi mon" : active ? active.label : "Dashboard";
-  roles.forEach((role) => $(`#${role.id}View`).classList.toggle("hidden", role.id !== state.role));
+  $("#pageTitle").textContent =
+    state.role === "customer"
+      ? "Menu goi mon"
+      : active
+        ? active.label
+        : "Dashboard";
+  roles.forEach((role) =>
+    $(`#${role.id}View`).classList.toggle("hidden", role.id !== state.role),
+  );
 }
 
 function render() {
@@ -174,7 +230,9 @@ function renderCustomer() {
       <section class="panel">
         <div class="toolbar">
           <input id="menuSearch" placeholder="Tim mon" />
-          <select id="catFilter"><option value="">Tat ca nhom</option>${[...new Set(state.menu.map((x) => x.cat).filter(Boolean))]
+          <select id="catFilter"><option value="">Tat ca nhom</option>${[
+            ...new Set(state.menu.map((x) => x.cat).filter(Boolean)),
+          ]
             .map((cat) => `<option value="${cat}">${cat}</option>`)
             .join("")}</select>
           <button id="reloadMenuBtn" type="button" class="secondary">Tai menu</button>
@@ -187,7 +245,10 @@ function renderCustomer() {
           <span>Chon ban</span>
           <div id="tablePicker" class="table-picker">
             ${state.tables
-              .map((table) => `<button class="table-option ${table === state.selectedTable ? "active" : ""}" data-table="${table}" type="button">${table}</button>`)
+              .map(
+                (table) =>
+                  `<button class="table-option ${table === state.selectedTable ? "active" : ""}" data-table="${table}" type="button">${table}</button>`,
+              )
               .join("")}
           </div>
         </div>
@@ -204,9 +265,18 @@ function renderCustomer() {
   const drawMenu = () => {
     const query = ($("#menuSearch").value || "").toLowerCase();
     const cat = $("#catFilter").value;
-    const items = state.menu.filter((item) => (!cat || item.cat === cat) && item.name.toLowerCase().includes(query));
-    $("#menuGrid").innerHTML = items.map((item) => menuCard(item)).join("") || `<p class="muted">Chua co mon.</p>`;
-    $("#menuGrid").querySelectorAll("[data-add]").forEach((btn) => btn.addEventListener("click", () => addToCart(Number(btn.dataset.add))));
+    const items = state.menu.filter(
+      (item) =>
+        (!cat || item.cat === cat) && item.name.toLowerCase().includes(query),
+    );
+    $("#menuGrid").innerHTML =
+      items.map((item) => menuCard(item)).join("") ||
+      `<p class="muted">Chua co mon.</p>`;
+    $("#menuGrid")
+      .querySelectorAll("[data-add]")
+      .forEach((btn) =>
+        btn.addEventListener("click", () => addToCart(Number(btn.dataset.add))),
+      );
   };
 
   const drawCart = () => {
@@ -224,16 +294,34 @@ function renderCustomer() {
           </li>`,
         )
         .join("") || `<li><span class="muted">Chua chon mon</span></li>`;
-    $("#cartTotal").textContent = money(state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0));
-    $("#cartList").querySelectorAll("[data-inc]").forEach((btn) => btn.addEventListener("click", () => changeCart(Number(btn.dataset.inc), 1)));
-    $("#cartList").querySelectorAll("[data-dec]").forEach((btn) => btn.addEventListener("click", () => changeCart(Number(btn.dataset.dec), -1)));
+    $("#cartTotal").textContent = money(
+      state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    );
+    $("#cartList")
+      .querySelectorAll("[data-inc]")
+      .forEach((btn) =>
+        btn.addEventListener("click", () =>
+          changeCart(Number(btn.dataset.inc), 1),
+        ),
+      );
+    $("#cartList")
+      .querySelectorAll("[data-dec]")
+      .forEach((btn) =>
+        btn.addEventListener("click", () =>
+          changeCart(Number(btn.dataset.dec), -1),
+        ),
+      );
   };
 
   $("#menuSearch").addEventListener("input", drawMenu);
   $("#catFilter").addEventListener("change", drawMenu);
-  $("#reloadMenuBtn").addEventListener("click", loadMenu);
+  $("#reloadMenuBtn").addEventListener("click", () => loadMenu());
   $("#createOrderBtn").addEventListener("click", createOrder);
-  $("#tablePicker").querySelectorAll("[data-table]").forEach((btn) => btn.addEventListener("click", () => selectTable(btn.dataset.table)));
+  $("#tablePicker")
+    .querySelectorAll("[data-table]")
+    .forEach((btn) =>
+      btn.addEventListener("click", () => selectTable(btn.dataset.table)),
+    );
   bindChatbot();
   drawMenu();
   drawCart();
@@ -243,7 +331,12 @@ function chatbotMarkup() {
   const messages =
     state.chatMessages.length > 0
       ? state.chatMessages
-      : [{ from: "bot", text: "Xin chao, minh co the goi y mon, tim mon theo ten, hoac xem tong tien gio hang cho ban." }];
+      : [
+          {
+            from: "bot",
+            text: "Xin chao, minh co the goi y mon, tim mon theo ten, hoac xem tong tien gio hang cho ban.",
+          },
+        ];
   return `
     <section class="chatbox">
       <div class="chat-head">
@@ -286,28 +379,56 @@ function bindChatbot() {
 function botReply(rawText) {
   const text = rawText.toLowerCase();
   const availableMenu = state.menu.filter((item) => item.avail !== false);
-  if (!availableMenu.length) return "Menu chua tai du lieu. Ban bam Tai menu roi hoi lai nhe.";
+  if (!availableMenu.length)
+    return "Menu chua tai du lieu. Ban bam Tai menu roi hoi lai nhe.";
 
-  if (text.includes("gio") || text.includes("tong") || text.includes("bao nhieu")) {
-    const total = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    return state.cart.length ? `Gio hang hien co ${state.cart.length} mon, tong tam tinh ${money(total)}.` : "Gio hang dang trong. Ban chon mon trong menu truoc nhe.";
+  if (
+    text.includes("gio") ||
+    text.includes("tong") ||
+    text.includes("bao nhieu")
+  ) {
+    const total = state.cart.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    return state.cart.length
+      ? `Gio hang hien co ${state.cart.length} mon, tong tam tinh ${money(total)}.`
+      : "Gio hang dang trong. Ban chon mon trong menu truoc nhe.";
   }
 
-  if (text.includes("re") || text.includes("gia thap") || text.includes("tiet kiem")) {
-    const items = [...availableMenu].sort((a, b) => Number(a.price) - Number(b.price)).slice(0, 3);
+  if (
+    text.includes("re") ||
+    text.includes("gia thap") ||
+    text.includes("tiet kiem")
+  ) {
+    const items = [...availableMenu]
+      .sort((a, b) => Number(a.price) - Number(b.price))
+      .slice(0, 3);
     return `Mon gia tot: ${items.map((item) => `${item.name} (${money(item.price)})`).join(", ")}.`;
   }
 
-  if (text.includes("goi y") || text.includes("nen an") || text.includes("recommend")) {
-    const items = [...availableMenu].sort((a, b) => Number(b.sold_count || 0) - Number(a.sold_count || 0)).slice(0, 3);
+  if (
+    text.includes("goi y") ||
+    text.includes("nen an") ||
+    text.includes("recommend")
+  ) {
+    const items = [...availableMenu]
+      .sort((a, b) => Number(b.sold_count || 0) - Number(a.sold_count || 0))
+      .slice(0, 3);
     return `Minh goi y: ${items.map((item) => `${item.name} (${money(item.price)})`).join(", ")}.`;
   }
 
-  const found = availableMenu.find((item) => text.includes(String(item.name).toLowerCase()));
-  if (found) return `${found.name}: ${money(found.price)}. ${found.desc || found.des || "Mon nay dang co san trong menu."}`;
+  const found = availableMenu.find((item) =>
+    text.includes(String(item.name).toLowerCase()),
+  );
+  if (found)
+    return `${found.name}: ${money(found.price)}. ${found.desc || found.des || "Mon nay dang co san trong menu."}`;
 
-  const matchedByCategory = availableMenu.filter((item) => item.cat && text.includes(String(item.cat).toLowerCase())).slice(0, 4);
-  if (matchedByCategory.length) return `Nhom nay co: ${matchedByCategory.map((item) => `${item.name} (${money(item.price)})`).join(", ")}.`;
+  const matchedByCategory = availableMenu
+    .filter((item) => item.cat && text.includes(String(item.cat).toLowerCase()))
+    .slice(0, 4);
+  if (matchedByCategory.length)
+    return `Nhom nay co: ${matchedByCategory.map((item) => `${item.name} (${money(item.price)})`).join(", ")}.`;
 
   return "Minh co the giup tim mon, goi y mon, xem mon gia tot, hoac tinh tong gio hang. Vi du: 'goi y mon', 'mon re', 'pho bo gia bao nhieu'.";
 }
@@ -323,7 +444,14 @@ function addToCart(id) {
   if (!item) return;
   const existing = state.cart.find((x) => Number(x.menu_item_id) === id);
   if (existing) existing.quantity += 1;
-  else state.cart.push({ menu_item_id: item.id, name: item.name, emoji: item.emoji, price: item.price, quantity: 1 });
+  else
+    state.cart.push({
+      menu_item_id: item.id,
+      name: item.name,
+      emoji: item.emoji,
+      price: item.price,
+      quantity: 1,
+    });
   saveSession();
   renderCustomer();
 }
@@ -339,9 +467,13 @@ function changeCart(id, delta) {
 
 async function createOrder() {
   const tableName = state.selectedTable;
-  if (!tableName || state.cart.length === 0) return toast("Can chon ban va mon", true);
+  if (!tableName || state.cart.length === 0)
+    return toast("Can chon ban va mon", true);
   try {
-    await api("/api/orders", { method: "POST", body: JSON.stringify({ table_name: tableName, items: state.cart }) });
+    await api("/api/orders", {
+      method: "POST",
+      body: JSON.stringify({ table_name: tableName, items: state.cart }),
+    });
     state.cart = [];
     saveSession();
     toast("Da gui don");
@@ -353,14 +485,22 @@ async function createOrder() {
 }
 
 function renderOrders(containerId, filterStatuses, mode) {
-  const orders = state.orders.filter((order) => !filterStatuses || filterStatuses.includes(order.status));
+  const orders = state.orders.filter(
+    (order) => !filterStatuses || filterStatuses.includes(order.status),
+  );
   const container = $(`#${containerId}`);
-  container.innerHTML = orders.map((order) => orderCard(order, mode)).join("") || `<p class="muted">Chua co don phu hop.</p>`;
+  container.innerHTML =
+    orders.map((order) => orderCard(order, mode)).join("") ||
+    `<p class="muted">Chua co don phu hop.</p>`;
   container.querySelectorAll("[data-status]").forEach((btn) => {
-    btn.addEventListener("click", () => updateStatus(Number(btn.dataset.order), btn.dataset.status));
+    btn.addEventListener("click", () =>
+      updateStatus(Number(btn.dataset.order), btn.dataset.status),
+    );
   });
   container.querySelectorAll("[data-pay]").forEach((btn) => {
-    btn.addEventListener("click", () => createSale(Number(btn.dataset.pay), btn.dataset.method));
+    btn.addEventListener("click", () =>
+      createSale(Number(btn.dataset.pay), btn.dataset.method),
+    );
   });
 }
 
@@ -368,14 +508,28 @@ function orderCard(order, mode) {
   const currentIndex = statusFlow.indexOf(order.status);
   const nextStatus = statusFlow[currentIndex + 1];
   const canMove =
-    (mode === "waiter" && ["pending", "ready", "serving"].includes(order.status)) ||
+    (mode === "waiter" &&
+      ["pending", "ready", "serving"].includes(order.status)) ||
     (mode === "kitchen" && ["confirmed", "cooking"].includes(order.status)) ||
     mode === "manager";
-  const items = (order.items || []).map((item) => `<li><span>${item.emoji || ""} ${item.name} x${item.quantity}</span><span>${money(item.price * item.quantity)}</span></li>`).join("");
-  const statusButton = nextStatus && canMove ? `<button data-order="${order.id}" data-status="${nextStatus}" type="button">Sang ${statusLabels[nextStatus]}</button>` : "";
+  const items = (order.items || [])
+    .map(
+      (item) =>
+        `<li><span>${item.emoji || ""} ${item.name} x${item.quantity}</span><span>${money(item.price * item.quantity)}</span></li>`,
+    )
+    .join("");
+  const statusButton =
+    nextStatus && canMove
+      ? `<button data-order="${order.id}" data-status="${nextStatus}" type="button">Sang ${statusLabels[nextStatus]}</button>`
+      : "";
   const payButtons =
     mode === "cashier" && order.status === "waiting_pay"
-      ? payMethods.map((method) => `<button data-pay="${order.id}" data-method="${method.value}" type="button">${method.label}</button>`).join("")
+      ? payMethods
+          .map(
+            (method) =>
+              `<button data-pay="${order.id}" data-method="${method.value}" type="button">${method.label}</button>`,
+          )
+          .join("")
       : "";
   return `
     <article class="order-card">
@@ -404,7 +558,11 @@ function renderWaiter() {
   $("#waiterCheckin").addEventListener("click", () => attendance("checkin"));
   $("#waiterCheckout").addEventListener("click", () => attendance("checkout"));
   $("#waiterReload").addEventListener("click", loadOrders);
-  renderOrders("waiterOrders", ["pending", "ready", "serving", "waiting_pay"], "waiter");
+  renderOrders(
+    "waiterOrders",
+    ["pending", "ready", "serving", "waiting_pay"],
+    "waiter",
+  );
 }
 
 function renderKitchen() {
@@ -484,8 +642,23 @@ function renderManager() {
   $("#loadScheduleBtn").addEventListener("click", loadSchedule);
   $("#loadAttendanceBtn").addEventListener("click", loadAttendance);
   $("#managerOrdersReload").addEventListener("click", loadOrders);
-  $("#managerView").querySelectorAll("[data-toggle-menu]").forEach((btn) => btn.addEventListener("click", () => toggleMenu(Number(btn.dataset.toggleMenu), btn.dataset.avail !== "true")));
-  $("#managerView").querySelectorAll("[data-delete-menu]").forEach((btn) => btn.addEventListener("click", () => deleteMenu(Number(btn.dataset.deleteMenu))));
+  $("#managerView")
+    .querySelectorAll("[data-toggle-menu]")
+    .forEach((btn) =>
+      btn.addEventListener("click", () =>
+        toggleMenu(
+          Number(btn.dataset.toggleMenu),
+          btn.dataset.avail !== "true",
+        ),
+      ),
+    );
+  $("#managerView")
+    .querySelectorAll("[data-delete-menu]")
+    .forEach((btn) =>
+      btn.addEventListener("click", () =>
+        deleteMenu(Number(btn.dataset.deleteMenu)),
+      ),
+    );
   renderOrders("managerOrders", null, "manager");
 }
 
@@ -574,13 +747,23 @@ function renderOwner() {
   bindTableManager("#ownerView");
 }
 
-async function loadMenu() {
+async function loadMenu(path = "/api/menu") {
   try {
-    state.menu = await api("/api/menu");
+    state.menu = await api(path);
     render();
   } catch (err) {
     toast(err.message, true);
   }
+}
+
+async function loadManagerMenu() {
+  return loadMenu("/api/menu/all");
+}
+
+async function loadMenuForCurrentRole() {
+  if (["manager", "owner"].includes(state.role) && state.token)
+    return loadManagerMenu();
+  return loadMenu();
 }
 
 async function loadOrders() {
@@ -594,7 +777,10 @@ async function loadOrders() {
 
 async function updateStatus(orderId, status) {
   try {
-    await api(`/api/orders/${orderId}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+    await api(`/api/orders/${orderId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     toast("Da cap nhat don");
     await loadOrders();
   } catch (err) {
@@ -604,7 +790,10 @@ async function updateStatus(orderId, status) {
 
 async function createSale(orderId, payMethod) {
   try {
-    await api("/api/sales", { method: "POST", body: JSON.stringify({ order_id: orderId, pay_method: payMethod }) });
+    await api("/api/sales", {
+      method: "POST",
+      body: JSON.stringify({ order_id: orderId, pay_method: payMethod }),
+    });
     toast("Da thanh toan");
     await loadOrders();
   } catch (err) {
@@ -630,7 +819,7 @@ async function createMenuItem(event) {
     await api("/api/menu", { method: "POST", body: JSON.stringify(data) });
     event.target.reset();
     toast("Da them mon");
-    await loadMenu();
+    await loadMenuForCurrentRole();
   } catch (err) {
     toast(err.message, true);
   }
@@ -638,9 +827,12 @@ async function createMenuItem(event) {
 
 async function toggleMenu(id, avail) {
   try {
-    await api(`/api/menu/${id}`, { method: "PATCH", body: JSON.stringify({ avail }) });
+    await api(`/api/menu/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ avail }),
+    });
     toast("Da cap nhat mon");
-    await loadMenu();
+    await loadMenuForCurrentRole();
   } catch (err) {
     toast(err.message, true);
   }
@@ -650,7 +842,7 @@ async function deleteMenu(id) {
   try {
     await api(`/api/menu/${id}`, { method: "DELETE" });
     toast("Da xoa mon");
-    await loadMenu();
+    await loadMenuForCurrentRole();
   } catch (err) {
     toast(err.message, true);
   }
@@ -690,9 +882,13 @@ async function loadEmployees() {
     const users = await api("/api/employees");
     state.employees = users;
     $("#ownerStats").innerHTML = employeeTable(users);
-    $("#ownerStats").querySelectorAll("[data-delete-employee]").forEach((btn) => {
-      btn.addEventListener("click", () => deleteEmployee(Number(btn.dataset.deleteEmployee)));
-    });
+    $("#ownerStats")
+      .querySelectorAll("[data-delete-employee]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () =>
+          deleteEmployee(Number(btn.dataset.deleteEmployee)),
+        );
+      });
   } catch (err) {
     toast(err.message, true);
   }
@@ -706,7 +902,8 @@ async function loadEmployeeOptions() {
 
 async function deleteEmployee(id) {
   if (!id) return toast("Khong tim thay ID nhan vien", true);
-  if (id === userId(state.user || {})) return toast("Khong the xoa tai khoan dang dang nhap", true);
+  if (id === userId(state.user || {}))
+    return toast("Khong the xoa tai khoan dang dang nhap", true);
   try {
     await api(`/api/employees/${id}`, { method: "DELETE" });
     toast("Da xoa nhan vien");
@@ -719,7 +916,9 @@ async function deleteEmployee(id) {
 async function loadSchedule() {
   try {
     const week = $("#scheduleWeek").value.trim();
-    const data = await api(`/api/schedule${week ? `?week=${encodeURIComponent(week)}` : ""}`);
+    const data = await api(
+      `/api/schedule${week ? `?week=${encodeURIComponent(week)}` : ""}`,
+    );
     state.schedule = normalizeSchedule(data);
     $("#scheduleWeek").value = state.schedule.week;
     await loadEmployeeOptions();
@@ -781,7 +980,9 @@ async function loadWeekAttendance(schedule) {
   const entries = await Promise.all(
     schedule.days.map(async (day) => {
       try {
-        const records = await api(`/api/attendance?date=${encodeURIComponent(day.date)}`);
+        const records = await api(
+          `/api/attendance?date=${encodeURIComponent(day.date)}`,
+        );
         return [day.date, records || []];
       } catch {
         return [day.date, []];
@@ -794,15 +995,29 @@ async function loadWeekAttendance(schedule) {
 function renderScheduleEditor() {
   if (!state.schedule) return;
   $("#managerData").innerHTML = scheduleEditorMarkup(state.schedule);
-  $("#managerData").querySelectorAll("[data-add-shift]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const select = $(`#${btn.dataset.select}`);
-      addScheduleEmployee(Number(btn.dataset.day), btn.dataset.shift, Number(select.value));
+  $("#managerData")
+    .querySelectorAll("[data-add-shift]")
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const select = $(`#${btn.dataset.select}`);
+        addScheduleEmployee(
+          Number(btn.dataset.day),
+          btn.dataset.shift,
+          Number(select.value),
+        );
+      });
     });
-  });
-  $("#managerData").querySelectorAll("[data-remove-shift]").forEach((btn) => {
-    btn.addEventListener("click", () => removeScheduleEmployee(Number(btn.dataset.day), btn.dataset.shift, Number(btn.dataset.employee)));
-  });
+  $("#managerData")
+    .querySelectorAll("[data-remove-shift]")
+    .forEach((btn) => {
+      btn.addEventListener("click", () =>
+        removeScheduleEmployee(
+          Number(btn.dataset.day),
+          btn.dataset.shift,
+          Number(btn.dataset.employee),
+        ),
+      );
+    });
 }
 
 function scheduleEditorMarkup(schedule) {
@@ -830,7 +1045,9 @@ function scheduleDayCell(day) {
 function shiftBlock(day, shift) {
   const assigned = day.shifts.filter((item) => item.shift === shift.value);
   const selectId = `shift-${day.day}-${shift.value.replace(/\s+/g, "-")}`;
-  const employees = state.employees.filter((employee) => !["owner", "customer"].includes(roleOf(employee)));
+  const employees = state.employees.filter(
+    (employee) => !["owner", "customer"].includes(roleOf(employee)),
+  );
   return `
     <div class="shift-block">
       <div class="shift-title">
@@ -860,33 +1077,57 @@ function shiftBlock(day, shift) {
 }
 
 function employeeDisplay(item) {
-  const employee = state.employees.find((user) => Number(userId(user)) === Number(item.employee_id));
-  return employee ? nameOf(employee) : item.employee_name || `Nhan vien #${item.employee_id}`;
+  const employee = state.employees.find(
+    (user) => Number(userId(user)) === Number(item.employee_id),
+  );
+  return employee
+    ? nameOf(employee)
+    : item.employee_name || `Nhan vien #${item.employee_id}`;
 }
 
 function lateBadge(date, employeeID) {
   const records = state.attendanceByDate[date] || [];
-  const record = records.find((item) => Number(item.user_id ?? item.UserID) === Number(employeeID));
+  const record = records.find(
+    (item) => Number(item.user_id ?? item.UserID) === Number(employeeID),
+  );
   if (!record) return "";
   const late = record.late ?? record.Late;
-  return late ? `<span class="late-badge">Muon</span>` : `<span class="ok-badge">Dung gio</span>`;
+  return late
+    ? `<span class="late-badge">Muon</span>`
+    : `<span class="ok-badge">Dung gio</span>`;
 }
 
 async function addScheduleEmployee(dayNumber, shiftName, employeeID) {
   if (!employeeID) return toast("Chon nhan vien", true);
-  const day = state.schedule.days.find((item) => Number(item.day) === dayNumber);
+  const day = state.schedule.days.find(
+    (item) => Number(item.day) === dayNumber,
+  );
   if (!day) return;
-  const exists = day.shifts.some((item) => item.shift === shiftName && Number(item.employee_id) === employeeID);
+  const exists = day.shifts.some(
+    (item) =>
+      item.shift === shiftName && Number(item.employee_id) === employeeID,
+  );
   if (exists) return toast("Nhan vien da co trong ca nay", true);
-  const employee = state.employees.find((item) => Number(userId(item)) === employeeID);
-  day.shifts.push({ employee_id: employeeID, employee_name: nameOf(employee || {}), shift: shiftName });
+  const employee = state.employees.find(
+    (item) => Number(userId(item)) === employeeID,
+  );
+  day.shifts.push({
+    employee_id: employeeID,
+    employee_name: nameOf(employee || {}),
+    shift: shiftName,
+  });
   await saveSchedule();
 }
 
 async function removeScheduleEmployee(dayNumber, shiftName, employeeID) {
-  const day = state.schedule.days.find((item) => Number(item.day) === dayNumber);
+  const day = state.schedule.days.find(
+    (item) => Number(item.day) === dayNumber,
+  );
   if (!day) return;
-  day.shifts = day.shifts.filter((item) => !(item.shift === shiftName && Number(item.employee_id) === employeeID));
+  day.shifts = day.shifts.filter(
+    (item) =>
+      !(item.shift === shiftName && Number(item.employee_id) === employeeID),
+  );
   await saveSchedule();
 }
 
@@ -898,7 +1139,10 @@ async function saveSchedule() {
         week: state.schedule.week,
         days: state.schedule.days.map((day) => ({
           day: day.day,
-          shifts: day.shifts.map((shift) => ({ employee_id: shift.employee_id, shift: shift.shift })),
+          shifts: day.shifts.map((shift) => ({
+            employee_id: shift.employee_id,
+            shift: shift.shift,
+          })),
         })),
       }),
     });
@@ -957,7 +1201,10 @@ function attendanceTable(records) {
 
 function table(headers, rows) {
   return `<table><thead><tr>${headers.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rows
-    .map((row) => `<tr>${row.map((cell) => `<td>${cell ?? ""}</td>`).join("")}</tr>`)
+    .map(
+      (row) =>
+        `<tr>${row.map((cell) => `<td>${cell ?? ""}</td>`).join("")}</tr>`,
+    )
     .join("")}</tbody></table>`;
 }
 
@@ -978,10 +1225,14 @@ function connectWS() {
     };
     state.ws.onmessage = async (message) => {
       const payload = JSON.parse(message.data);
-      state.events.unshift({ event: payload.event || "event", time: new Date().toLocaleTimeString("vi-VN") });
+      state.events.unshift({
+        event: payload.event || "event",
+        time: new Date().toLocaleTimeString("vi-VN"),
+      });
       state.events = state.events.slice(0, 12);
-      if (["new_order", "order_updated", "order_paid"].includes(payload.event)) await loadOrders();
-      if (payload.event === "menu_updated") await loadMenu();
+      if (["new_order", "order_updated", "order_paid"].includes(payload.event))
+        await loadOrders();
+      if (payload.event === "menu_updated") await loadMenuForCurrentRole();
       render();
     };
   } catch {
@@ -1001,7 +1252,13 @@ function closeLogin() {
 
 async function refreshRoleData() {
   if (state.role === "customer") await loadMenu();
-  if (["waiter", "kitchen", "cashier", "manager", "owner"].includes(state.role) && state.token) await loadOrders();
+  if (["manager", "owner"].includes(state.role) && state.token)
+    await loadManagerMenu();
+  if (
+    ["waiter", "kitchen", "cashier", "manager", "owner"].includes(state.role) &&
+    state.token
+  )
+    await loadOrders();
 }
 
 async function login() {
@@ -1009,7 +1266,10 @@ async function login() {
   const username = $("#username").value.trim();
   const password = $("#password").value;
   try {
-    const data = await api("/api/login", { method: "POST", body: JSON.stringify({ username, password }) });
+    const data = await api("/api/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
     state.token = data.token;
     state.user = { ...data.user, role: normalizeRole(data.user.role) };
     state.role = state.user.role;

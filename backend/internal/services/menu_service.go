@@ -43,6 +43,10 @@ func (s *MenuService) GetMenuItems() ([]models.MenuItem, error) {
 	return availableItems, nil
 }
 
+func (s *MenuService) GetAllMenuItems() ([]models.MenuItem, error) {
+	return s.menuRepo.GetAll()
+}
+
 func (s *MenuService) GetMenuItemByID(id uint) (*models.MenuItem, error) {
 	return s.menuRepo.GetByID(id)
 }

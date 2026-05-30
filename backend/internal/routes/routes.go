@@ -29,6 +29,7 @@ func RegisterRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler, authHand
 			auth.GET("/attendance", middleware.RequireRole("manager", "owner"), attendanceHandler.GetAttendance)
 
 			//menu routes
+			auth.GET("/menu/all", middleware.RequireRole("manager", "owner"), menuHandler.GetAllMenuItems)
 			auth.POST("/menu", middleware.RequireRole("manager", "owner"), menuHandler.CreateMenuItem)
 			auth.PATCH("/menu/:id", middleware.RequireRole("manager", "owner"), menuHandler.UpdateMenuItem)
 			auth.DELETE("/menu/:id", middleware.RequireRole("manager", "owner"), menuHandler.DeleteMenuItem)
