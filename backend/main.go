@@ -74,10 +74,10 @@ func main() {
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://127.0.0.1:5500", "http://localhost:5500"},
+		AllowOrigins:     []string{"*"}, // Allow all origins for remote access
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Authorization", "Content-Type"},
-		AllowCredentials: true,
+		AllowCredentials: false, // Must be false when AllowOrigins is *
 	}))
 
 	routes.RegisterRoutes(router, orderHandler, authHandler, attendanceHandler, menuHandler, salaryHandler, scheduleHandler, wsHandler)

@@ -38,8 +38,15 @@ const fixedShifts = [
   { value: "Ca 2", label: "Ca 2", time: "16:00 - 24:00" },
 ];
 
+// Get API base from URL parameter, localStorage, or default
+function getApiBase() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("api")) return params.get("api");
+  return localStorage.getItem("apiBase") || window.location.origin.replace(/:5500.*/, ":8080");
+}
+
 const state = {
-  apiBase: localStorage.getItem("apiBase") || "http://localhost:8080",
+  apiBase: getApiBase(),
   token: localStorage.getItem("token") || "",
   user: savedUser ? { ...savedUser, role: normalizeRole(savedUser.role) } : null,
   role: localStorage.getItem("token") ? normalizeRole(localStorage.getItem("activeRole") || savedUser?.role || "customer") : "customer",
