@@ -16,5 +16,5 @@ echo  Ctrl+C to stop server
 echo ========================================
 echo.
 
-py -m http.server 5500 --bind 0.0.0.0
+py -m http.server 5500
 pause
