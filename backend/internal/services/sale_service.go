@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/TOM88bet/PHO-VANG/backend/internal/constants"
+	"github.com/TOM88bet/PHO-VANG/backend/internal/dto"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/models"
 	"github.com/TOM88bet/PHO-VANG/backend/internal/repositories"
 	mysql "github.com/go-sql-driver/mysql"
@@ -76,25 +77,25 @@ func (s *SaleService) CreateSale(orderID uint, payMethod string) (*models.Sale, 
 	return sale, nil
 }
 
-func (s *SaleService) GetRevenueStats() (map[string]interface{}, error) {
+func (s *SaleService) GetRevenueStats() (dto.RevenueResponse, error) {
 	totalRevenue, err := s.saleRepo.GetTotalRevenue()
 	if err != nil {
-		return nil, err
+		return dto.RevenueResponse{}, err
 	}
 
 	totalOrders, err := s.saleRepo.GetTotalOrders()
 	if err != nil {
-		return nil, err
+		return dto.RevenueResponse{}, err
 	}
 
 	recentSales, err := s.saleRepo.GetRecentSales(10)
 	if err != nil {
-		return nil, err
+		return dto.RevenueResponse{}, err
 	}
 
 	topItems, err := s.orderRepo.GetTopItemsFromPaidOrders(10)
 	if err != nil {
-		return nil, err
+		return dto.RevenueResponse{}, err
 	}
 
 	var avgOrder float64
@@ -102,11 +103,20 @@ func (s *SaleService) GetRevenueStats() (map[string]interface{}, error) {
 		avgOrder = totalRevenue / float64(totalOrders)
 	}
 
-	return map[string]interface{}{
-		"total_revenue": totalRevenue,
-		"total_orders":  totalOrders,
-		"average_order": avgOrder,
-		"top_items":     topItems,
-		"recent_sales":  recentSales,
-	}, nil
+	topItemResponses := make([]dto.TopItemData, 0, len(topItems))
+	for _, item := range topItems {
+		topItemResponses = append(topItemResponses, dto.TopItemData{
+			MenuItemID:    item.MenuItemID,
+			TotalQuantity: item.TotalQuantity,
+			TotalRevenue:  item.TotalRevenue,
+		})
+	}
+
+	return dto.ToRevenueResponse(
+		totalRevenue,
+		totalOrders,
+		avgOrder,
+		topItemResponses,
+		dto.ToSaleResponses(recentSales),
+	), nil
 }

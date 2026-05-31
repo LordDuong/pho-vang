@@ -17,6 +17,7 @@ type CreateOrderRequest struct {
 
 type OrderItemResponse struct {
 	ID         uint    `json:"id"`
+	OrderID    uint    `json:"order_id"`
 	MenuItemID uint    `json:"menu_item_id"`
 	Name       string  `json:"name"`
 	Emoji      string  `json:"emoji"`

@@ -41,7 +41,7 @@ func (h *MenuHandler) GetMenuItems(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    items,
+		"data":    dto.ToMenuItemResponses(items),
 		"message": "Menu items retrieved successfully",
 	})
 }
@@ -59,7 +59,7 @@ func (h *MenuHandler) GetAllMenuItems(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    items,
+		"data":    dto.ToMenuItemResponses(items),
 		"message": "Menu items retrieved successfully",
 	})
 }
@@ -123,7 +123,7 @@ func (h *MenuHandler) CreateMenuItem(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
-		"data":    menuItem,
+		"data":    dto.ToMenuItemResponse(menuItem),
 		"message": "Menu item created successfully",
 	})
 }
@@ -255,7 +255,7 @@ func (h *MenuHandler) broadcastMenuToRoles(action string, item *models.MenuItem)
 		Event: "menu_updated",
 		Data: gin.H{
 			"action": action,
-			"item":   item,
+			"item":   dto.ToMenuItemResponse(*item),
 		},
 	})
 }

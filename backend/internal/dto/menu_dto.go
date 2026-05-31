@@ -27,7 +27,7 @@ type MenuItemResponse struct {
 	Name      string    `json:"name"`
 	Cat       string    `json:"cat"`
 	Price     float64   `json:"price"`
-	Desc      string    `json:"desc"`
+	Desc      string    `json:"des"`
 	Img       string    `json:"img"`
 	Emoji     string    `json:"emoji"`
 	Avail     bool      `json:"avail"`

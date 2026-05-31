@@ -116,7 +116,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
-		"data":    order,
+		"data":    dto.ToOrderResponse(order),
 		"message": "Order created successfully",
 	})
 }
@@ -146,7 +146,7 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    order,
+		"data":    dto.ToOrderResponse(*order),
 		"message": "Order retrieved successfully",
 	})
 }
@@ -180,7 +180,7 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    orders,
+		"data":    dto.ToOrderResponses(orders),
 		"message": "Orders retrieved successfully",
 	})
 }
@@ -430,7 +430,7 @@ func (h *OrderHandler) CreateSale(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
-		"data":    sale,
+		"data":    dto.ToSaleResponse(*sale),
 		"message": "Sale created successfully",
 	})
 }
@@ -442,7 +442,7 @@ func (h *OrderHandler) broadcastOrderToRoles(event string, order *models.Order) 
 
 	h.wsHub.BroadcastToRoles([]string{"waiter", "kitchen", "cashier", "manager", "owner"}, ws.Message{
 		Event: event,
-		Data:  order,
+		Data:  dto.ToOrderResponse(*order),
 	})
 }
 
@@ -453,6 +453,6 @@ func (h *OrderHandler) broadcastSaleToRoles(event string, sale *models.Sale) {
 
 	h.wsHub.BroadcastToRoles([]string{"cashier", "manager", "owner"}, ws.Message{
 		Event: event,
-		Data:  sale,
+		Data:  dto.ToSaleResponse(*sale),
 	})
 }
